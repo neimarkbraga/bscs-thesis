@@ -10,5 +10,13 @@
     "cdrrmo"
   ],
   "author": "Neimark Junsay Braga",
-  "license": "ISC"
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neimarkbraga/bscs-thesis.git"
+  },
+  "bugs": {
+    "url": "https://github.com/neimarkbraga/bscs-thesis/issues"
+  },
+  "homepage": "https://github.com/neimarkbraga/bscs-thesis#readme"
 }
