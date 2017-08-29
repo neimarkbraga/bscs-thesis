@@ -1,0 +1,14 @@
+{
+  "name": "bscs-thesis",
+  "version": "1.0.0",
+  "description": "My thesis for city hall of iloilo",
+  "main": "server.js",
+  "scripts": {
+    "test": "node server.js"
+  },
+  "keywords": [
+    "cdrrmo"
+  ],
+  "author": "Neimark Junsay Braga",
+  "license": "ISC"
+}
