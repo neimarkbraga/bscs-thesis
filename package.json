@@ -18,5 +18,19 @@
   "bugs": {
     "url": "https://github.com/neimarkbraga/bscs-thesis/issues"
   },
-  "homepage": "https://github.com/neimarkbraga/bscs-thesis#readme"
+  "homepage": "https://github.com/neimarkbraga/bscs-thesis#readme",
+  "dependencies": {
+    "bcrypt-nodejs": "0.0.3",
+    "body-parser": "^1.17.2",
+    "express": "^4.15.4",
+    "express-session": "^1.15.5",
+    "fs-extra": "^4.0.1",
+    "lodash": "^4.17.4",
+    "morgan": "^1.8.2",
+    "mysql2": "^1.4.2",
+    "passport": "^0.4.0",
+    "rotating-file-stream": "^1.2.2",
+    "sequelize": "^4.7.5",
+    "serve-favicon": "^2.4.3"
+  }
 }
