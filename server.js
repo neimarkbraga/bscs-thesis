@@ -31,6 +31,19 @@ var sessionOption = {
 fse.ensureDirSync('.logs');
 fse.ensureDirSync('public');
 
+//ensure database
+db.sequelize
+    .sync({
+        //alter: true,
+        force: true //DELETE THIS ON DEPLOYMENT
+    })
+    .then(function () {
+        console.log('Database status: OK');
+    })
+    .catch(function (err) {
+        throw err;
+    });
+
 //middleware
 app.use(morgan('combined', {stream: rfs('access.log', {interval: '1d', path: path.join(__dirname, '.logs')})}));
 app.use(favicon(__dirname + '/public/assets/img/logo/logo-100px.png'));
@@ -57,23 +70,9 @@ app.use(function (err, req, res, next) {
     res.send(err);
 });
 
-
-
-//ensure database before starting server
-db.sequelize
-    .sync({
-        alter: true,
-        force: true //DELETE THIS ON DEPLOYMENT
-    })
-    .then(function () {
-        //start sever
-        var server = app.listen(port, function () {
-            var host = server.address().address;
-            var port = server.address().port;
-            console.log('Server status: RUNNING @ ' + host + ':' + port);
-        });
-        console.log('Database status: OK');
-    })
-    .catch(function (err) {
-        throw err;
-    });
+//start sever
+var server = app.listen(port, function () {
+    var host = server.address().address;
+    var port = server.address().port;
+    console.log('Server status: RUNNING @ ' + host + ':' + port);
+});

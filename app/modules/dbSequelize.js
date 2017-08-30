@@ -1,5 +1,4 @@
 var sensitive       =   require('../settings/sensitive-settings.json');
-var lodash          =   require('lodash');
 var Sequelize       =   require('sequelize');
 var sequelize = new Sequelize(sensitive.mySQL.database, sensitive.mySQL.username, sensitive.mySQL.password, {
     host: sensitive.mySQL.host,
