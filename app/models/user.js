@@ -4,12 +4,13 @@ var sequelize       =   dbSequelize.sequelize;
 var Sequelize       =   dbSequelize.Sequelize;
 var DataTypes       =   Sequelize.DataTypes;
 var Barangay        =   require('./barangay');
+var UserType        =   require('./userType');
 
 const SALT_WORK_FACTOR = 12;
 var User = sequelize.define('User', {
     USERNAME: {type: DataTypes.STRING, primaryKey: true, allowNull: false, defaultValue: ''},
     PASSWORD: {type: DataTypes.STRING, allowNull: false, defaultValue: ''},
-    TYPE: {type: DataTypes.STRING, allowNull: false, defaultValue: ''},
+    TYPE: {type: DataTypes.STRING, allowNull: false, references:{model: UserType, key:'CODE'}},
     FIRSTNAME: {type: DataTypes.STRING, allowNull: false, defaultValue: ''},
     MIDDLENAME: {type: DataTypes.STRING, allowNull: false, defaultValue: ''},
     LASTNAME: {type: DataTypes.STRING, allowNull: false, defaultValue: ''},
