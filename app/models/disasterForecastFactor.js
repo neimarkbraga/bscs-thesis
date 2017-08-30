@@ -6,10 +6,10 @@ var DataTypes       =   Sequelize.DataTypes;
 var DisasterType    =   require('./disasterType');
 
 var disasterForecastFactor = sequelize.define('DisasterForecastFactor', {
-    ID: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true, allowNull: false},
-    NAME: {type: DataTypes.STRING, allowNull: false},
-    DISASTER: {type: DataTypes.INTEGER, allowNull: false, references:{model: DisasterType, key:'ID'}},
-    UNIT: {type: DataTypes.STRING, allowNull: false}
+    id: {field: 'ID', type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true, allowNull: false},
+    disasterType: {field: 'DISASTER', type: DataTypes.INTEGER, allowNull: false, references:{model: DisasterType, key:'ID'}},
+    name: {field: 'NAME', type: DataTypes.STRING, allowNull: false},
+    unit: {field: 'UNIT', type: DataTypes.STRING, allowNull: false}
 },{
     freezeTableName: true,
     tableName: 'disaster_forecast_factor'

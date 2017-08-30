@@ -8,14 +8,14 @@ var UserType        =   require('./userType');
 
 const SALT_WORK_FACTOR = 12;
 var User = sequelize.define('User', {
-    USERNAME: {type: DataTypes.STRING, primaryKey: true, allowNull: false, defaultValue: ''},
-    PASSWORD: {type: DataTypes.STRING, allowNull: false, defaultValue: ''},
-    TYPE: {type: DataTypes.STRING, allowNull: false, references:{model: UserType, key:'CODE'}},
-    FIRSTNAME: {type: DataTypes.STRING, allowNull: false, defaultValue: ''},
-    MIDDLENAME: {type: DataTypes.STRING, allowNull: false, defaultValue: ''},
-    LASTNAME: {type: DataTypes.STRING, allowNull: false, defaultValue: ''},
-    BARANGAY: {type: DataTypes.INTEGER, allowNull: true, defaultValue: null, references:{model: Barangay, key:'ID'}},
-    ENABLED: {type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true}
+    username: {field: 'USERNAME', type: DataTypes.STRING, primaryKey: true, allowNull: false, defaultValue: ''},
+    password: {field: 'PASSWORD', type: DataTypes.STRING, allowNull: false, defaultValue: ''},
+    type: {field: 'TYPE', type: DataTypes.STRING, allowNull: false, references:{model: UserType, key:'CODE'}},
+    firstname: {field: 'FIRSTNAME', type: DataTypes.STRING, allowNull: false, defaultValue: ''},
+    middlename: {field: 'MIDDLENAME', type: DataTypes.STRING, allowNull: false, defaultValue: ''},
+    lastname: {field: 'LASTNAME', type: DataTypes.STRING, allowNull: false, defaultValue: ''},
+    barangay: {field: 'BARANGAY', type: DataTypes.INTEGER, allowNull: true, defaultValue: null, references:{model: Barangay, key:'ID'}},
+    enabled: {field: 'ENABLED', type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true}
 },{
     freezeTableName: true,
     tableName: 'user',

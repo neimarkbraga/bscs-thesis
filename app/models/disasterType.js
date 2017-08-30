@@ -5,10 +5,10 @@ var DataTypes       =   Sequelize.DataTypes;
 
 
 var disasterType = sequelize.define('DisasterType', {
-    ID: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true, allowNull: false},
-    NAME: {type: DataTypes.STRING, allowNull: false},
-    COLOR: {type: DataTypes.STRING, allowNull: false},
-    ENABLED: {type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true}
+    id: {field: 'ID', type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true, allowNull: false},
+    name: {field: 'NAME', type: DataTypes.STRING, allowNull: false},
+    color: {field: 'COLOR', type: DataTypes.STRING, allowNull: false},
+    enabled: {field: 'ENABLED', type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true}
 },{
     freezeTableName: true,
     tableName: 'disaster_type'

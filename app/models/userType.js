@@ -4,8 +4,8 @@ var Sequelize       =   dbSequelize.Sequelize;
 var DataTypes       =   Sequelize.DataTypes;
 
 var userType = sequelize.define('UserType', {
-    CODE: {type: DataTypes.STRING, primaryKey: true, allowNull: false},
-    NAME: {type: DataTypes.STRING, allowNull: false}
+    code: {field: 'CODE', type: DataTypes.STRING, primaryKey: true, allowNull: false},
+    name: {field: 'NAME', type: DataTypes.STRING, allowNull: false}
 },{
     freezeTableName: true,
     tableName: 'user_type'
