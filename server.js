@@ -33,16 +33,12 @@ fse.ensureDirSync('public');
 
 //ensure database
 db.sequelize
-    .sync({
-        //alter: true,
-        force: true //DELETE THIS ON DEPLOYMENT
-    })
+    .sync(/*{force: true}*/)
     .then(function () {
         console.log('Database status: OK');
+        db.initContents();
     })
-    .catch(function (err) {
-        throw err;
-    });
+    .catch(function (err) {throw err;});
 
 //middleware
 app.use(morgan('combined', {stream: rfs('access.log', {interval: '1d', path: path.join(__dirname, '.logs')})}));

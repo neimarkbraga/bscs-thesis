@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/neimarkbraga/bscs-thesis#readme",
   "dependencies": {
+    "async": "^2.5.0",
     "bcrypt-nodejs": "0.0.3",
     "body-parser": "^1.17.2",
     "express": "^4.15.4",
@@ -29,6 +30,7 @@
     "morgan": "^1.8.2",
     "mysql2": "^1.4.2",
     "passport": "^0.4.0",
+    "promise-to-callback": "^1.0.0",
     "rotating-file-stream": "^1.2.2",
     "sequelize": "^4.7.5",
     "serve-favicon": "^2.4.3"

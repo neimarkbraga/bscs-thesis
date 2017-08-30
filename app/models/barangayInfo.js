@@ -9,9 +9,14 @@ var barangayInfo = sequelize.define('BarangayInfo', {
     barangay: {field: 'BARANGAY', type: DataTypes.INTEGER, allowNull: false, references:{model: Barangay, key:'ID'}},
     men: {field: 'MEN', type: DataTypes.INTEGER, allowNull: false, defaultValue: 0},
     women: {field: 'WOMEN', type: DataTypes.INTEGER, allowNull: false, defaultValue: 0},
-    minors: {field: 'MINORS', type: DataTypes.INTEGER, allowNull: false, defaultValue: 0},
-    adults: {field: 'ADULTS', type: DataTypes.INTEGER, allowNull: false, defaultValue: 0},
     pwd: {field: 'PWD', type: DataTypes.INTEGER, allowNull: false, defaultValue: 0},
+    minors: {field: 'MINORS', type: DataTypes.INTEGER, allowNull: false, defaultValue: 0}, //below 18
+    children: {field: 'CHILDREN', type: DataTypes.INTEGER, allowNull: false, defaultValue: 0}, //0–12
+    teenagers: {field: 'TEENAGERS', type: DataTypes.INTEGER, allowNull: false, defaultValue: 0}, //13-18
+    youngAdults: {field: 'YOUNG_ADULTS', type: DataTypes.INTEGER, allowNull: false, defaultValue: 0}, //18-25
+    adults: {field: 'ADULTS', type: DataTypes.INTEGER, allowNull: false, defaultValue: 0}, //25-40
+    middleAge: {field: 'MIDDLE_AGE', type: DataTypes.INTEGER, allowNull: false, defaultValue: 0}, //40-60
+    oldAge: {field: 'OLD_AGE', type: DataTypes.INTEGER, allowNull: false, defaultValue: 0}, //60+
     concreteHouses: {field: 'CONCRETE_HOUSES', type: DataTypes.INTEGER, allowNull: false, defaultValue: 0},
     lightMaterialHouses: {field: 'LIGHT_MATERIAL_HOUSES', type: DataTypes.INTEGER, allowNull: false, defaultValue: 0},
     combinedMaterialHouses: {field: 'LIGHT_AND_CONCRETE_MATERIAL_HOUSES', type: DataTypes.INTEGER, allowNull: false, defaultValue: 0},
