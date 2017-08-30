@@ -4,7 +4,6 @@ var Sequelize       =   dbSequelize.Sequelize;
 var DataTypes       =   Sequelize.DataTypes;
 
 var DisasterDeclare    =   require('./disasterDeclare');
-var Barangay        =   require('./barangay');
 var User            =   require('./user');
 
 var disasterReport = sequelize.define('DisasterReport', {
