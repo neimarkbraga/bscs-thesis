@@ -1,6 +1,12 @@
 angular.module('mainController', [])
     .controller('mainCtrl', function ($scope, $location, $rootScope, $interval, Auth) {
         var main = this;
+        //google map api key
+        main.googleMapsApiKey = 'AIzaSyBhYf7S2yODZjBzSOcBHY-sI-2RQvkgBns';
+        main.googleMapsOptions = {
+            center: '10.7186962, 122.5599542',
+            zoom: 14
+        };
 
         //get current user
         if(sessionStorage.currentUser) main.user = angular.copy(JSON.parse(sessionStorage.currentUser));
