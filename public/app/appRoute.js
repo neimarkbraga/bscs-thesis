@@ -24,5 +24,19 @@ angular.module('appRoute', ['ngRoute'])
                 controllerAs: 'dashboard',
                 allowedUsers: ['ADMIN']
             })
+            .when('/ADMIN/admin-manage-users', {
+                templateUrl: 'app/views/admin/adminManageUsers.html',
+                controller: 'adminManageUsersCtrl',
+                controllerAs: 'manager',
+                allowedUsers: ['ADMIN']
+            })
+            .when('/ADMIN/admin-manage-places', {
+                templateUrl: 'app/views/admin/adminManagePlaces.html',
+                controller: 'adminManagePlacesCtrl',
+                controllerAs: 'manager',
+                allowedUsers: ['ADMIN']
+            })
+
+
             .otherwise({redirectTo: '/'});
     });

@@ -6,8 +6,8 @@ angular.module('adminDashboardController', [])
             {name: 'Manage Disaster Types', link: '#/'},
             {name: 'Manage Disaster Grouping', link: '#/'},
             {name: 'Manage Evacuation Centers', link: '#/'},
-            {name: 'Manage Users', link: '#/'},
-            {name: 'Manage Places', link: '#/'},
+            {name: 'Manage Users', link: '#/ADMIN/admin-manage-users'},
+            {name: 'Manage Places', link: '#/ADMIN/admin-manage-places'},
             {name: 'Manage News Feed', link: '#/'}
         ]
     });

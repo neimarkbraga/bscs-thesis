@@ -4,6 +4,8 @@ angular.module('app', [
     'ngAnimate',
     'mainController',
     'homeController',
+    'accountSettingsController',
     'adminDashboardController',
-    'accountSettingsController'
+    'adminManageUsersController',
+    'adminManagePlacesController'
 ]);
