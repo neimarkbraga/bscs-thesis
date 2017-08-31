@@ -1,5 +1,38 @@
 <div class="container pt-3">
     <h3>Account Settings</h3>
     <hr />
-    ...
+    <div class="row">
+        <div class="col-sm-12 col-md-6">
+            <div ng-show="settings.loginErrorMessage" class="alert alert-danger" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                {{settings.loginErrorMessage}}
+            </div>
+            <div ng-show="settings.loginSuccessMessage" class="alert alert-success" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                {{settings.loginSuccessMessage}}
+            </div>
+
+            <form ng-submit="settings.changePassword($event)">
+                <div class="form-group">
+                    <label>Old Password</label>
+                    <input type="password" class="form-control" required="required" ng-model="settings.form.oldPassword" placeholder="Old Password" />
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" class="form-control" required="required" minlength="6" ng-model="settings.form.newPassword" placeholder="New Password" />
+                </div>
+                <div class="form-group">
+                    <label>Retype New Password</label>
+                    <input type="password" class="form-control" required="required" minlength="6" ng-model="settings.form.retypePassword" placeholder="Retype New Password" />
+                </div>
+                <div class="text-right">
+                    <button type="submit" class="btn btn-primary">Change Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>

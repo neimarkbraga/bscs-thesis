@@ -43,7 +43,8 @@ router.post('/user/register', function (req, res) {
         //validate account
         function (callback) {
             userPassport.validateByUsername(req.session.username, function (err, user) {
-                if(user.type != 'ADMIN') callback('You are unauthorized Access to execute this action.');
+                if(err) callback(err);
+                else if(user.type != 'ADMIN') callback('You are unauthorized Access to execute this action.');
                 else callback();
             });
         },
@@ -138,6 +139,40 @@ router.get('/user/me', function (req, res) {
 router.get('/user/logout', function (req, res) {
     req.session.destroy();
     res.json({success: true});
+});
+router.put('/user/change-password', function (req, res) {
+    async.waterfall([
+
+        //check fields
+        function (callback) {
+            if(!req.session.username) callback('Unauthorized Access.');
+            else if(!req.body.old_password) callback('old_password is required.');
+            else if(!req.body.new_password) callback('new_password is required.');
+            else if(req.body.new_password.length < 6) callback('new_password password must be at least 6 characters.');
+            else callback();
+        },
+
+        //validate account
+        function (callback) {
+            userPassport.validateByUsername(req.session.username, function (err, user) {
+                if(err) callback(err);
+                else if(!user.comparePassword(req.body.old_password)) callback ('Wrong old password.');
+                else callback(null, user);
+            });
+        },
+
+        //save password
+        function (user, callback) {
+            user.password = user.bcryptPassword(req.body.new_password);
+            promiseToCallback(user.save())(function (err, user) {
+                if(err) callback(err.message || 'Error updating password');
+                else callback();
+            });
+        }
+    ], function (err) {
+        if(err) res.send({success: false, message: err});
+        else res.send({success: true, message: 'Password updated.'});
+    });
 });
 
 

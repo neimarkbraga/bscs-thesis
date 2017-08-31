@@ -1,5 +1,5 @@
 angular.module('mainController', [])
-    .controller('mainCtrl', function ($scope, $location, Auth) {
+    .controller('mainCtrl', function ($scope, $location, $rootScope, $interval, Auth) {
         var main = this;
 
         //get current user
@@ -27,7 +27,8 @@ angular.module('mainController', [])
         });
 
         //login
-        main.loginSubmit = function () {
+        main.loginSubmit = function (e) {
+            e.preventDefault();
             main.loginDisabled = true;
             main.loginErrorMessage = undefined;
             Auth.authenticate(main.loginForm).then(function (response) {
@@ -56,5 +57,5 @@ angular.module('mainController', [])
                 }).catch(function (err) {
                     Dialog.alert('Something went wrong', 'Error: ' + err.statusText);
                 });
-        }
+        };
     });
