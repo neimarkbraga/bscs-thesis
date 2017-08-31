@@ -27,5 +27,4 @@ User.prototype.comparePassword = function (password) {
 User.hook('beforeCreate', function (user) {
     user.password = bcrypt.hashSync(user.password);
 });
-
 module.exports = User;

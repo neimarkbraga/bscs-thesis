@@ -10,8 +10,11 @@ var db                  =   require('../models');
 //===============================================
 /*
 
-      1. User
-
+    1. User
+        -me
+        -register
+        -authenticate
+    2. ...
 */
 
 
@@ -22,20 +25,6 @@ var db                  =   require('../models');
 //  1. User
 //===============================================
 
-router.get('/user/me', function (req, res) {
-    userPassport.validateByUsername(req.session.username, function (err, user) {
-        if(err) res.json({success: false, message: err});
-        else {
-            user = user.get({raw: true});
-            if(!user.barangay) delete user.barangay;
-            delete user.password;
-            delete user.enabled;
-            delete user.createdAt;
-            delete user.updatedAt;
-            res.json({success: true, user: user});
-        }
-    });
-});
 router.post('/user/register', function (req, res) {
     async.waterfall([
         
@@ -104,10 +93,11 @@ router.post('/user/authenticate', function (req, res) {
         //get data
         function (callback) {
             promiseToCallback(db.models.User.findOne({
-                where: {
-                    username: req.body.username
-                }
-            }))(callback);
+                where: {username: req.body.username}
+            }))(function (err, user) {
+                if(err) callback(err.message || 'Error retrieving data.');
+                else callback(null, user);
+            });
         },
 
         //check
@@ -122,7 +112,6 @@ router.post('/user/authenticate', function (req, res) {
         if(err) res.send({success: false, message: err});
         else {
             var user = result.get({raw: true});
-            if(!user.barangay) delete user.barangay;
             delete user.password;
             delete user.enabled;
             delete user.createdAt;
@@ -132,7 +121,24 @@ router.post('/user/authenticate', function (req, res) {
         }
     });
 });
-
+router.get('/user/me', function (req, res) {
+    userPassport.validateByUsername(req.session.username, function (err, user) {
+        if(err) res.json({success: false, message: err});
+        else {
+            user = user.get({raw: true});
+            if(!user.barangay) delete user.barangay;
+            delete user.password;
+            delete user.enabled;
+            delete user.createdAt;
+            delete user.updatedAt;
+            res.json({success: true, user: user});
+        }
+    });
+});
+router.get('/user/logout', function (req, res) {
+    req.session.destroy();
+    res.json({success: true});
+});
 
 
 //===============================================

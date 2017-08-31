@@ -1,0 +1,22 @@
+<div class="container">
+    <h3 class="pt-3">Admin Dashboard</h3>
+    <hr />
+    <div class="row">
+        <div class="col-sm-12 col-md-6" ng-repeat="item in dashboard.items track by $index">
+            <a href="{{item.link}}" class="d-block rounded border m-2">
+                <div class="p-3">
+                    <table>
+                        <tr>
+                            <td>
+                                <img class="rounded-circle bg-dark dashboard-item" src="assets/img/icons/generic.png" />
+                            </td>
+                            <td class="w-100">
+                                <h5 class="text-dark">{{item.name}}</h5>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>

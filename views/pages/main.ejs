@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+        <title><%= appSettings.appName %></title>
+        <!--stylesheets-->
+        <link rel="stylesheet" type="text/css" href="assets/tp/bootstrap/css/bootstrap.min.css" />
+        <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+        <link rel="stylesheet" type="text/css" href="assets/css/style.css" />
+
+        <!--angular modules-->
+        <script type="application/javascript" src="assets/tp/angular/angular.min.js"></script>
+        <script type="application/javascript" src="assets/tp/angular-route/angular-route.min.js"></script>
+        <script type="application/javascript" src="assets/tp/angular-animate/angular-animate.min.js"></script>
+
+        <!--bootstrap dependencies-->
+        <script type="application/javascript" src="assets/tp/jquery/jquery.min.js"></script>
+        <script type="application/javascript" src="assets/tp/popper/umd/popper.min.js"></script>
+        <script type="application/javascript" src="assets/tp/bootstrap/js/bootstrap.min.js"></script>
+
+        <!--boostrap dialog plugin-->
+        <script type="application/javascript" src="assets/tp/bootstrap-dialogs/bootstrap-dialogs.min.js"></script>
+
+        <!--app script-->
+        <script type="application/javascript" src="assets/js/script.js"></script>
+
+        <!--angular app components-->
+        <!--main app-->
+        <script type="application/javascript" src="app/app.js"></script>
+
+        <!--app routes-->
+        <script type="application/javascript" src="app/appRoute.js"></script>
+
+        <!--factories-->
+        <script type="application/javascript" src="app/factories/authService.js"></script>
+
+        <!--main controller-->
+        <script type="application/javascript" src="app/controllers/mainCtrl.js"></script>
+
+        <!--public controllers-->
+        <script type="application/javascript" src="app/controllers/public/homeCtrl.js"></script>
+
+        <!--admin controllers-->
+        <script type="application/javascript" src="app/controllers/admin/adminDashboardCtrl.js"></script>
+
+        <!--accounts controllers-->
+        <script type="application/javascript" src="app/controllers/accounts/accountSettingsCtrl.js"></script>
+    </head>
+    <body class="d-flex flex-column" ng-app="app" ng-controller="mainCtrl as main">
+        <header>
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <div class="container">
+                    <a class="navbar-brand" href="#/">
+                        <img src="assets/img/logo/logo-100px.png" width="50" height="50" alt="logo">
+                    </a>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav ml-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">News</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">Disasters</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">Barangays</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">Map</a>
+                            </li>
+                            <li class="nav-item text-center" ng-if="!main.user">
+                                <button type="button" data-toggle="modal" data-target="#loginModal" class="btn btn-outline-primary">Login</button>
+                            </li>
+                            <li class="nav-item dropdown" ng-if="main.user">
+                                <a href="" class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    {{main.user.firstname[0].toUpperCase() + main.user.middlename[0].toUpperCase() + ' ' + main.user.lastname}}
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                    <a class="dropdown-item" href="#/{{main.user.type}}/dashboard">Dashboard</a>
+                                    <a class="dropdown-item" href="#/settings">Settings</a>
+                                    <button type="button" ng-click="main.logout();" class="dropdown-item">Logout</button>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </header>
+        <main>
+            <ng-view></ng-view>
+            <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <form ng-submit="main.loginSubmit()">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="loginModalLabel">Login</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <div ng-show="main.loginErrorMessage" class="alert alert-danger" role="alert">
+                                    {{main.loginErrorMessage}}
+                                </div>
+                                <div class="form-group">
+                                    <label class="w-100">
+                                        <input type="text"
+                                               class="form-control"
+                                               ng-model="main.loginForm.username"
+                                               placeholder="Enter Username"
+                                               ng-disabled="main.loginDisabled"
+                                               required="required" />
+                                    </label>
+                                </div>
+                                <div class="form-group mb-0">
+                                    <label class="w-100">
+                                        <input type="password"
+                                               class="form-control"
+                                               ng-model="main.loginForm.password"
+                                               placeholder="Enter Password"
+                                               ng-disabled="main.loginDisabled"
+                                               required="required" />
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                <button type="submit" ng-disabled="main.loginDisabled" class="btn btn-primary">Login</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <footer class="p-2 bg-dark text-secondary">
+            <div class="container">
+                <p class="m-0 p-0">&copy; 2017 <%= appSettings.appName %></p>
+            </div>
+        </footer>
+    </body>
+</html>

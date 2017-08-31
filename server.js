@@ -40,6 +40,9 @@ db.sequelize
     })
     .catch(function (err) {throw err;});
 
+//set
+app.set('view engine', 'ejs');
+
 //middleware
 app.use(morgan('combined', {stream: rfs('access.log', {interval: '1d', path: path.join(__dirname, '.logs')})}));
 app.use(favicon(__dirname + '/public/assets/img/logo/logo-100px.png'));
@@ -57,9 +60,7 @@ app.use(function (req, res, next) {
 
 //routes
 app.use('/api', require('./app/routes/api'));
-app.use('/', function (req, res) {
-    res.send('Hello World!');
-});
+app.use('/', require('./app/routes/pages'));
 
 //error handler
 app.use(function (err, req, res, next) {
