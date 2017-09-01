@@ -2,6 +2,7 @@ angular.module('app', [
     'authService',
     'appRoute',
     'ngAnimate',
+    'eventDirectives',
     'mainController',
     'homeController',
     'accountSettingsController',

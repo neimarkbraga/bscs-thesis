@@ -1,29 +1,59 @@
-<div class="container">
+<div class="container" on-scroll-to-bottom="manager.loadMorePlaces();">
     <h3 class="pt-3">Manage Places</h3>
     <hr />
-    <form>
+    <form ng-submit="manager.searchPlace($event);">
         <div class="input-group">
-            <input type="text" class="form-control" placeholder="Search">
+            <input type="text" class="form-control" ng-disabled="manager.searchBusy" ng-model="manager.searchKeyword" placeholder="Search">
             <span class="input-group-btn">
                 <button class="btn btn-primary" type="submit">Search</button>
             </span>
         </div>
     </form>
-    <table class="table">
-
-    </table>
-
-    <div class="pt-3 pb-3 text-right">
-        <button class="btn btn-primary" data-toggle="modal" data-target="#newPlaceModal" type="submit">Add New Place</button>
+    <div class="text-right">
+        <button class="btn btn-secondary mt-2 mb-2" data-toggle="modal" data-target="#manageDistrictModal" type="submit">Manage Districts</button>
+        <button class="btn btn-secondary mt-2 mb-2" data-toggle="modal" ng-click="manager.setPlaceFormMode('new')" type="submit">Add New Place</button>
     </div>
 
-    <!--modals-->
-    <div id="newPlaceModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>City</th>
+                <th>District</th>
+                <th>Barangay</th>
+                <th>Coastal Area</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="place in manager.places track by $index">
+                <td class="w-25">{{place.CITY_NAME}}</td>
+                <td class="w-25">{{place.DISTRICT_NAME}}</td>
+                <td class="w-25">{{place.BARANGAY_NAME}}</td>
+                <td class="w-25">{{(place.isCOASTAL == 1)? 'YES':'NO'}}</td>
+                <td class="w-25">
+                    <button type="button" ng-click="manager.setPlaceFormMode('edit', $index)" class="btn">Edit Details</button>
+                </td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr ng-show="manager.searchBusy">
+                <td colspan="5" class="text-center text-secondary">Loading...</td>
+            </tr>
+            <tr ng-show="manager.searchMax">
+                <td colspan="5" class="text-center text-secondary">End of Result.</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!--add/delete place modal-->
+    <div id="placeFormModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-lg">
-            <form ng-submit="manager.newPlace($event);">
+            <form ng-submit="manager.submitPlaceForm($event);">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">Add New Place</h4>
+                        <h4 class="modal-title">
+                            {{(manager.placeFormMode == 'new')? 'Add New Place':'Edit Place Details'}}
+                        </h4>
                     </div>
                     <div class="modal-body">
                         <div map-lazy-load="https://maps.google.com/maps/api/js?key={{main.googleMapsApiKey}}&libraries=drawing">
@@ -37,46 +67,54 @@
                             <label>Barangay Name</label>
                             <input type="text"
                                    class="form-control"
-                                   ng-model="manager.newPlaceForm.barangay_name"
+                                   ng-model="manager.placeForm.barangay_name"
                                    placeholder="Barangay Name"
                                    required="required"/>
                         </div>
-
                         <div class="form-group">
                             <label>District</label>
                             <select class="form-control"
-                                    ng-model="manager.newPlaceForm.district_id"
+                                    ng-model="manager.placeForm.district_id"
                                     ng-required="true">
-                                <option value="1">Test</option>
-                                <option value="-1">Add New+</option>
+                                <option ng-value="district.id" ng-repeat="district in manager.districts track by $index">{{district.name}}</option>
+                                <option ng-value="-1">Add New+</option>
                             </select>
                         </div>
 
-                        <div class="form-group" ng-show="manager.newPlaceForm.district_id < 0">
+                        <div class="form-group" ng-show="manager.placeForm.district_id < 0">
                             <label>District Name</label>
                             <input type="text"
                                    class="form-control"
-                                   ng-disabled="manager.newPlaceForm.district_id > 0"
-                                   ng-model="manager.newPlaceForm.district_name"
+                                   ng-disabled="manager.placeForm.district_id > 0"
+                                   ng-model="manager.placeForm.district_name"
                                    placeholder="District Name"
-                                   ng-required="manager.newPlaceForm.district_id < 0"/>
+                                   ng-required="manager.placeForm.district_id < 0"/>
                         </div>
 
-                        <div ng-show="manager.newPlaceFormErrorMessage" class="alert alert-danger" role="alert">
-                            <button type="button" class="close" ng-click="manager.newPlaceFormErrorMessage = undefined">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                            {{manager.newPlaceFormErrorMessage}}
+                        <div class="text-right">
+                            <label class="custom-control custom-checkbox">
+                                <input type="checkbox" ng-model="manager.placeForm.is_coastal" class="custom-control-input">
+                                <span class="custom-control-indicator"></span>
+                                <span class="custom-control-description">The Place is a Coastal Area</span>
+                            </label>
                         </div>
-                        <div ng-show="manager.newPlaceFormSuccessMessage" class="alert alert-success" role="alert">
-                            <button type="button" class="close  " ng-click="manager.newPlaceFormSuccessMessage = undefined">
+
+                        <div ng-show="manager.placeFormErrorMessage" class="alert alert-danger" role="alert">
+                            <button type="button" class="close" ng-click="manager.placeFormErrorMessage = undefined">
                                 <span aria-hidden="true">&times;</span>
                             </button>
-                            {{manager.newPlaceFormSuccessMessage}}
+                            {{manager.placeFormErrorMessage}}
+                        </div>
+                        <div ng-show="manager.placeFormSuccessMessage" class="alert alert-success" role="alert">
+                            <button type="button" class="close  " ng-click="manager.placeFormSuccessMessage = undefined">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            {{manager.placeFormSuccessMessage}}
                         </div>
 
                     </div>
                     <div class="modal-footer">
+                        <button type="button" ng-show="manager.placeFormMode != 'new'" ng-click="manager.deletePlace();" class="btn btn-danger">Delete Place</button>
                         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary">Save</button>
                     </div>
@@ -85,4 +123,29 @@
         </div>
     </div>
 
+    <!--manage districts modal-->
+    <div id="manageDistrictModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Manage Districts</h4>
+                </div>
+                <div class="modal-body">
+                    <table class="table">
+                        <tbody>
+                            <tr ng-repeat="district in manager.districts track by $index">
+                                <td class="w-100">{{district.name}}</td>
+                                <td><button type="button" ng-click="manager.renameDistrict($index);" class="btn btn-secondary">Rename</button></td>
+                                <td><button type="button" ng-click="manager.deleteDistrict($index);" class="btn btn-danger">Delete</button></td>
+                            </tr>
+                        </tbody>
+                    </table>    
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" ng-click="manager.addNewDistrict();" class="btn btn-primary">Add New District</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
