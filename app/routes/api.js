@@ -140,6 +140,56 @@ router.get('/user/logout', function (req, res) {
     req.session.destroy();
     res.json({success: true});
 });
+router.get('/user/list', function (req, res) {
+
+    async.waterfall([
+        //validate session
+        function (callback) {
+            if(!req.session.username) callback('Unauthorized Access.');
+            else callback();
+        },
+
+        //validate account
+        function (callback) {
+            userPassport.validateByUsername(req.session.username, function (err, user) {
+                if(err) callback(err);
+                else if(user.type != 'ADMIN') callback('You are unauthorized Access to execute this action.');
+                else callback();
+            });
+        },
+
+        //retrieve data
+        function (callback) {
+            var query = {attributes: { exclude: ['password', 'enabled', 'createdAt', 'updatedAt']}};
+            if(req.query.q) {
+                var value = req.query.q.replace(/ /g, '%');
+                value = '%'+value+'%';
+                query.where = {
+                    $or: [
+                        {username: {$like: value}},
+                        {firstname: {$like: value}},
+                        {middlename: {$like: value}},
+                        {lastname: {$like: value}}
+                    ]
+                }
+            }
+
+            if(req.query.p){
+                var count = 10;
+                query.offset = (parseInt(req.query.p) - 1);
+                query.limit = count;
+            }
+
+            promiseToCallback(db.models.User.findAll(query))(function (err, results) {
+                if(err) callback(err.message || 'Error retrieving data');
+                else callback(null, results);
+            });
+        }
+    ], function (err, data) {
+        if(err) res.send({success: false, message: err});
+        else res.send({success: true, data: data});
+    })
+});
 router.put('/user/change-password', function (req, res) {
     async.waterfall([
 
@@ -496,6 +546,8 @@ router.delete('/places/delete/:id', function (req, res) {
 });
 router.delete('/places/delete-district/:id', function (req, res) {
     async.waterfall([
+
+        //validate session
         function (callback) {
             if(!req.session.username) callback('Unauthorized Access.');
             else callback();
