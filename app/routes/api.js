@@ -76,7 +76,7 @@ router.post('/user/register', function (req, res) {
                  else callback(null, user);
              });
         }
-    ], function (err, result) {
+    ], function (err) {
         if(err) res.send({success: false, message: err});
         else res.send({success: true, message: 'User registered.'});
     });
@@ -223,6 +223,9 @@ router.put('/user/change-password', function (req, res) {
         if(err) res.send({success: false, message: err});
         else res.send({success: true, message: 'Password updated.'});
     });
+});
+router.delete('/user/delete/:username', function () {
+
 });
 
 
