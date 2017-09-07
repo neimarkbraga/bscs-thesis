@@ -1,5 +1,5 @@
-angular.module('adminManagePlacesController', ['ngMap', 'placeService', 'mapService'])
-    .controller('adminManagePlacesCtrl', function ($rootScope, $routeParams, $location, $http, NgMap, PlaceSv, MapSv) {
+angular.module('adminManagePlacesController', ['placeService', 'mapService'])
+    .controller('adminManagePlacesCtrl', function ($rootScope, $routeParams, $location, $http, PlaceSv, MapSv) {
         var manager = this;
         manager.resetSeacrh = function () {
             manager.currentPage = 0;
@@ -8,35 +8,33 @@ angular.module('adminManagePlacesController', ['ngMap', 'placeService', 'mapServ
             manager.places = [];
         };
         manager.initMap = function () {
-            NgMap.getMap().then(function (map) {
-                manager.map = map;
-                manager.mapPolygonOptions = {
-                    editable: true,
-                        draggable: true
-                };
-                manager.drawingManager = new google.maps.drawing.DrawingManager({
-                    map: map,
-                    drawingControl: true,
-                    drawingControlOptions: {
-                        drawingModes: ['polygon'],
-                        position: google.maps.ControlPosition.TOP_CENTER
-                    },
-                    polygonOptions: manager.mapPolygonOptions
-                });
-                manager.drawingManager.addListener('polygoncomplete', function (polygon) {
-                    if(manager.mapPolygon) manager.mapPolygon.setMap(null);
-                    manager.mapPolygon = polygon;
-                });
-                $('#placeFormModal')
-                    .on('shown.bs.modal', function () {
-                        google.maps.event.trigger(map, "resize");
-                        if(manager.mapBounds) manager.map.fitBounds(manager.mapBounds);
-                    }).on('hidden.bs.modal', function () {
-                        if(manager.mapPolygon) manager.mapPolygon.setMap(null);
-                        manager.mapBounds = undefined;
-                    });
-            }).catch(function (err) {
-                Dialog.alert('Map Error', err);
+            manager.mapPolygonOptions = {
+                editable: true,
+                draggable: true
+            };
+
+            manager.map = new google.maps.Map(document.getElementById('map'), MapSv.defaultMapOptions);
+            manager.drawingManager = new google.maps.drawing.DrawingManager({
+                map: manager.map,
+                drawingControl: true,
+                drawingControlOptions: {
+                    drawingModes: ['polygon'],
+                    position: google.maps.ControlPosition.TOP_CENTER
+                },
+                polygonOptions: manager.mapPolygonOptions
+            });
+            manager.drawingManager.addListener('polygoncomplete', function (polygon) {
+                if(manager.mapPolygon) manager.mapPolygon.setMap(null);
+                manager.mapPolygon = polygon;
+            });
+            $('#placeFormModal')
+                .on('shown.bs.modal', function () {
+                    google.maps.event.trigger(map, "resize");
+                    if(manager.mapBounds) manager.map.fitBounds(manager.mapBounds);
+                    else manager.map.setOptions(MapSv.defaultMapOptions);
+                }).on('hidden.bs.modal', function () {
+                if(manager.mapPolygon) manager.mapPolygon.setMap(null);
+                manager.mapBounds = undefined;
             });
         };
         manager.onMapOverlayCompleted = function (e) {

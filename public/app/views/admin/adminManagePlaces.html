@@ -56,13 +56,9 @@
                         </h4>
                     </div>
                     <div class="modal-body">
-                        <div map-lazy-load="https://maps.google.com/maps/api/js?key={{main.googleMapsApiKey}}&libraries=drawing">
-                            <ng-map
-                                    center="{{main.googleMapsOptions.center}}"
-                                    zoom="{{main.googleMapsOptions.zoom}}">
-                            </ng-map>
-                        </div>
+                        <div id="map" style="height: 50vh;">
 
+                        </div>
                         <div class="form-group pt-3">
                             <label>Barangay Name</label>
                             <input type="text"

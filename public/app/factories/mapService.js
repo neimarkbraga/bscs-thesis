@@ -1,6 +1,13 @@
 angular.module('mapService', [])
     .factory('MapSv', function () {
         return {
+            defaultMapOptions: {
+                center: {
+                    lat: 10.7186962,
+                    lng: 122.5599542
+                },
+                zoom: 14
+            },
             getPolygonPathCenter: function (path) {
                 try {
                     var x1 = path[0].lat;
