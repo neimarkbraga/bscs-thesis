@@ -1,28 +1,42 @@
 angular.module('mainController', [])
-    .controller('mainCtrl', function ($scope, $location, $rootScope, $interval, Auth) {
+    .controller('mainCtrl', function ($scope, $location, $interval, Auth) {
         var main = this;
-        //get current user
-        if(sessionStorage.currentUser) main.user = angular.copy(JSON.parse(sessionStorage.currentUser));
+
+        //initialize variables
+        main.user = undefined;
+        main.loginDisabled = false;
+        main.loginErrorMessage = undefined;
+        main.loginForm = undefined;
+        main.pageLoading = false;
+        main.navItems = [
+            {name: 'News', path: '/news'},
+            {name: 'Disasters', path: '/disasters'},
+            {name: 'Barangays', path: '/barangays'},
+            {name: 'Map', path: '/map'}
+        ];
 
         //page authorization
         $scope.$on('$routeChangeStart', function (event, next, prev) {
-            if((next.allowedUsers) && (!main.user || ((next.allowedUsers).indexOf(main.user.type) < 0)))
-                $location.path('/');
-
-            Auth.me()
-                .then(function (response) {
-                    if(response.data.success)main.user = response.data.user;
-                    else main.user = undefined;
-                }).catch(function () {
+            var authorizedUser = function () {
+                if(!next.allowedUsers) return true;
+                else if(!main.user) return false;
+                else return next.allowedUsers.indexOf(main.user.type) > -1;
+            };
+            if(main.pageLoading) event.preventDefault();
+            else {
+                main.pageLoading = true;
+                Auth.me()
+                    .then(function (response) {
+                        if(response.data.success) main.user = response.data.user;
+                        else main.user = undefined;
+                    }).catch(function (err) {
                     main.user = undefined;
+                    throw err;
                 }).finally(function () {
-                    if(main.user) sessionStorage.currentUser = JSON.stringify(main.user);
-                    else sessionStorage.removeItem('currentUser');
-                    if((next.allowedUsers) && (!main.user || ((next.allowedUsers).indexOf(main.user.type) < 0))){
-                        Dialog.alert('Unauthorized Access', 'You are not allowed to access the page.');
-                        $location.path('/');
-                    }
+                    main.pageLoading = false;
+                    if(!authorizedUser()) $location.path('/');
                 });
+            }
         });
 
         //login
@@ -35,7 +49,6 @@ angular.module('mainController', [])
                     main.loginForm = {};
                     $('#loginModal').modal('hide');
                     main.user = response.data.user;
-                    sessionStorage.currentUser = JSON.stringify(main.user);
                     $location.path('/' + main.user.type + '/dashboard');
                 } else main.loginErrorMessage = response.data.message;
             }).catch(function (err) {

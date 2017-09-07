@@ -66,20 +66,11 @@
                     </button>
                     <div class="collapse navbar-collapse" id="navbarNav">
                         <ul class="navbar-nav ml-auto">
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">News</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">Disasters</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">Barangays</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">Map</a>
+                            <li class="nav-item" ng-repeat="item in main.navItems track by $index">
+                                <a  class="nav-link" href="#{{item.path}}">{{item.name}}</a>
                             </li>
                             <li class="nav-item text-center" ng-if="!main.user">
-                                <button type="button" data-toggle="modal" data-target="#loginModal" class="btn btn-outline-primary">Login</button>
+                                <button  type="button" data-toggle="modal" data-target="#loginModal" class="btn btn-outline-primary">Login</button>
                             </li>
                             <li class="nav-item dropdown" ng-if="main.user">
                                 <a href="" class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -96,8 +87,13 @@
                 </div>
             </nav>
         </header>
-        <main style="position: relative;">
-            <ng-view></ng-view>
+        <main>
+            <ng-view ng-hide="main.pageLoading"></ng-view>
+            <div ng-show="main.pageLoading" class="h-100 d-flex">
+                <div class="pre-loader m-auto"></div>
+            </div>
+
+            <!--login modal-->
             <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true">
                 <div class="modal-dialog" role="document">
                     <div class="modal-content">

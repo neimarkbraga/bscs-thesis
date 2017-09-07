@@ -9,7 +9,7 @@ angular.module('appRoute', ['ngRoute'])
                 controllerAs: 'home'
             })
 
-            //MIX
+            //ACCOUNTS
             .when('/settings', {
                 templateUrl: 'app/pages/accounts/accountSettings.html',
                 controller: 'accountSettingsCtrl',
