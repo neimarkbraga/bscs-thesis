@@ -4,14 +4,14 @@ angular.module('appRoute', ['ngRoute'])
         $routeProvider
             //public
             .when('/', {
-                templateUrl: 'app/views/public/home.html',
+                templateUrl: 'app/pages/public/home.html',
                 controller: 'homeCtrl',
                 controllerAs: 'home'
             })
 
             //MIX
             .when('/settings', {
-                templateUrl: 'app/views/accounts/accountSettings.html',
+                templateUrl: 'app/pages/accounts/accountSettings.html',
                 controller: 'accountSettingsCtrl',
                 controllerAs: 'settings',
                 allowedUsers: ['ADMIN', 'CDRRMO', 'BRGY', 'CSWD']
@@ -19,19 +19,19 @@ angular.module('appRoute', ['ngRoute'])
 
             //ADMIN
             .when('/ADMIN/dashboard', {
-                templateUrl: 'app/views/admin/adminDashboard.html',
+                templateUrl: 'app/pages/admin/adminDashboard.html',
                 controller: 'adminDashboardCtrl',
                 controllerAs: 'dashboard',
                 allowedUsers: ['ADMIN']
             })
             .when('/ADMIN/admin-manage-users', {
-                templateUrl: 'app/views/admin/adminManageUsers.html',
+                templateUrl: 'app/pages/admin/adminManageUsers.html',
                 controller: 'adminManageUsersCtrl',
                 controllerAs: 'manager',
                 allowedUsers: ['ADMIN']
             })
             .when('/ADMIN/admin-manage-places', {
-                templateUrl: 'app/views/admin/adminManagePlaces.html',
+                templateUrl: 'app/pages/admin/adminManagePlaces.html',
                 controller: 'adminManagePlacesCtrl',
                 controllerAs: 'manager',
                 allowedUsers: ['ADMIN']
