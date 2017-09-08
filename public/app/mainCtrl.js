@@ -1,7 +1,6 @@
 angular.module('mainController', [])
     .controller('mainCtrl', function ($scope, $location, $interval, Auth) {
         var main = this;
-
         //initialize variables
         main.user = undefined;
         main.loginDisabled = false;
@@ -22,20 +21,22 @@ angular.module('mainController', [])
                 else if(!main.user) return false;
                 else return next.allowedUsers.indexOf(main.user.type) > -1;
             };
-            if(main.pageLoading) event.preventDefault();
-            else {
-                main.pageLoading = true;
-                Auth.me()
-                    .then(function (response) {
-                        if(response.data.success) main.user = response.data.user;
-                        else main.user = undefined;
-                    }).catch(function (err) {
-                    main.user = undefined;
-                    throw err;
-                }).finally(function () {
-                    main.pageLoading = false;
-                    if(!authorizedUser()) $location.path('/');
-                });
+            if(!next.redirectTo){
+                if(main.pageLoading == true) event.preventDefault();
+                else {
+                    main.pageLoading = true;
+                    Auth.me()
+                        .then(function (response) {
+                            if(response.data.success) main.user = response.data.user;
+                            else main.user = undefined;
+                        }).catch(function (err) {
+                        main.user = undefined;
+                        throw err;
+                    }).finally(function () {
+                        main.pageLoading = false;
+                        if(!authorizedUser()) $location.path('/');
+                    });
+                }
             }
         });
 
