@@ -14,6 +14,10 @@
         <script type="application/javascript" src="assets/tp/angular-route/angular-route.min.js"></script>
         <script type="application/javascript" src="assets/tp/angular-animate/angular-animate.min.js"></script>
 
+        <!--chart js-->
+        <script type="application/javascript" src="assets/tp/chart.js/dist/Chart.min.js"></script>
+        <script type="application/javascript" src="assets/tp/angular-chart/angular-chart.min.js"></script>
+
         <!--google maps-->
         <script type="application/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=drawing&key=AIzaSyBhYf7S2yODZjBzSOcBHY-sI-2RQvkgBns"></script>
 
@@ -46,6 +50,7 @@
         <!--public controllers-->
         <script type="application/javascript" src="app/pages/publicCtrls.js"></script>
         <script type="application/javascript" src="app/pages/public/homeCtrl.js"></script>
+        <script type="application/javascript" src="app/pages/public/placesCtrl.js"></script>
 
         <!--admin controllers-->
         <script type="application/javascript" src="app/pages/adminCtrls.js"></script>
@@ -69,8 +74,14 @@
                     </button>
                     <div class="collapse navbar-collapse" id="navbarNav">
                         <ul class="navbar-nav ml-auto">
-                            <li class="nav-item" ng-repeat="item in main.navItems track by $index">
-                                <a  class="nav-link" href="#{{item.path}}">{{item.name}}</a>
+                            <li class="nav-item {{(item.items)? 'dropdown':''}}" ng-repeat="item in main.navItems track by $index">
+                                <a ng-if="item.path" href="#{{item.path}}" class="nav-link">{{item.name}}</a>
+                                <a ng-if="item.items" href="" class="nav-link dropdown-toggle" id="navbarDropdownMenuLink_{{$index}}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    {{item.name}}
+                                </a>
+                                <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink_{{$index}}">
+                                    <a ng-repeat="dropdown_item in item.items track by $index" class="dropdown-item" href="#{{dropdown_item.path}}">{{dropdown_item.name}}</a>
+                                </div>
                             </li>
                             <li class="nav-item text-center" ng-if="!main.user">
                                 <button  type="button" data-toggle="modal" data-target="#loginModal" class="btn btn-outline-primary">Login</button>

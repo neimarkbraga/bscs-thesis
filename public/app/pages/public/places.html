@@ -1,0 +1,15 @@
+<div class="container pt-3">
+    <h2>Places</h2>
+    <hr />
+    <div class="row">
+        <div class="col-sm-12 col-md-8">
+            {{places.getDistrictNames()}}
+            {{places.getBarangayCounts()}}
+        </div>
+        <div class="col-sm-12 col-md-4">
+            <canvas id="pie" class="chart chart-pie"
+                    chart-data="places.chart.data" chart-labels="places.chart.labels" chart-options="places.chart.options">
+            </canvas>
+        </div>
+    </div>
+</div>

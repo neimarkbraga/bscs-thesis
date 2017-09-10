@@ -1,1 +1,1 @@
-angular.module('publicCtrls', []);
+angular.module('publicCtrls', ['placeService', 'mapService']);

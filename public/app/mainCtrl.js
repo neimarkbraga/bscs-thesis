@@ -10,8 +10,13 @@ angular.module('mainController', [])
         main.navItems = [
             {name: 'News', path: '/news'},
             {name: 'Disasters', path: '/disasters'},
-            {name: 'Barangays', path: '/barangays'},
-            {name: 'Map', path: '/map'}
+            {name: 'Places', path: '/places'},
+            {name: 'Map', items: [
+                {name: 'On-Going Disaster', path: '/map/on-going-disasters'},
+                {name: 'Evacuation Centers', path: '/map/evacuation-centers'},
+                {name: 'Top Disasters in Places', path: '/map/top-disasters-in-places'},
+                {name: 'Place Population', path: '/map/place-population'}
+            ]}
         ];
 
         //page authorization

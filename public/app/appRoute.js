@@ -8,6 +8,11 @@ angular.module('appRoute', ['ngRoute'])
                 controller: 'homeCtrl',
                 controllerAs: 'home'
             })
+            .when('/places', {
+                templateUrl: 'app/pages/public/places.html',
+                controller: 'placesCtrl',
+                controllerAs: 'places'
+            })
 
             //ACCOUNTS
             .when('/settings', {
