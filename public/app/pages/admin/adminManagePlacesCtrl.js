@@ -1,4 +1,4 @@
-angular.module('adminManagePlacesController', ['placeService', 'mapService'])
+angular.module('adminCtrls')
     .controller('adminManagePlacesCtrl', function ($rootScope, $routeParams, $location, $http, PlaceSv, MapSv) {
         var manager = this;
         manager.resetSeacrh = function () {

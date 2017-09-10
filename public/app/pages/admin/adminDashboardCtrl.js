@@ -1,4 +1,4 @@
-angular.module('adminDashboardController', [])
+angular.module('adminCtrls')
     .controller('adminDashboardCtrl', function () {
         var dashboard = this;
         dashboard.items = [

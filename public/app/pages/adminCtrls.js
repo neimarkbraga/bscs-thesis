@@ -1,0 +1,1 @@
+angular.module('adminCtrls', ['placeService', 'mapService']);

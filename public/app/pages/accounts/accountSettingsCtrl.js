@@ -1,4 +1,4 @@
-angular.module('accountSettingsController', [])
+angular.module('accountsCtrls')
     .controller('accountSettingsCtrl', function ($http) {
         var settings = this;
         settings.changePassword = function (e) {

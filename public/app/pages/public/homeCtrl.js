@@ -1,4 +1,4 @@
-angular.module('homeController', [])
+angular.module('publicCtrls')
     .controller('homeCtrl', function () {
         var home = this;
         home.title = 'Disaster Risk Management';
