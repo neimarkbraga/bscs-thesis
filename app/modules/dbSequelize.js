@@ -2,7 +2,6 @@ var promiseToCallback = require('promise-to-callback');
 var async           =   require('async');
 var sensitive       =   require('../settings/sensitive-settings.json');
 var Sequelize       =   require('sequelize');
-var db              =   require('../models');
 var sequelize = new Sequelize(sensitive.mySQL.database, sensitive.mySQL.username, sensitive.mySQL.password, {
     host: sensitive.mySQL.host,
     dialect: 'mysql',
@@ -15,8 +14,8 @@ var sequelize = new Sequelize(sensitive.mySQL.database, sensitive.mySQL.username
 });
 
 module.exports = {
-    sequelize:sequelize,
-    Sequelize:Sequelize,
+    sequelize: sequelize,
+    Sequelize: Sequelize,
     initContents: function () {
         var createUserType = function (code, name) {
             var UserType = new sequelize.models.UserType();

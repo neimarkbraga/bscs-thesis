@@ -45,6 +45,7 @@ angular.module('mainController', [])
             e.preventDefault();
             main.loginDisabled = true;
             main.loginErrorMessage = undefined;
+            var preloader = new Dialog.preloader('Logging in...');
             Auth.authenticate(main.loginForm).then(function (response) {
                 if(response.data.success) {
                     main.loginForm = {};
@@ -53,14 +54,16 @@ angular.module('mainController', [])
                     $location.path('/' + main.user.type + '/dashboard');
                 } else main.loginErrorMessage = response.data.message;
             }).catch(function (err) {
-                main.loginErrorMessage = 'Error: ' + err.statusText;
+                main.loginErrorMessage = 'Cannot communicate to the server';
             }).finally(function () {
                 main.loginDisabled = false;
+                preloader.destroy();
             });
         };
 
         //logout
         main.logout = function () {
+            var preloader = new Dialog.preloader('Logging out...');
             Auth.logout()
                 .then(function (response) {
                     if(response.data.success){
@@ -69,6 +72,8 @@ angular.module('mainController', [])
                     } else Dialog.alert('Something went wrong', 'Cannot communicate to server.');
                 }).catch(function (err) {
                     Dialog.alert('Something went wrong', 'Error: ' + err.statusText);
+                }).finally(function () {
+                    preloader.destroy();
                 });
         };
     });

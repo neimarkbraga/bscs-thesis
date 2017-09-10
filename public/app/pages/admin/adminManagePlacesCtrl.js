@@ -91,6 +91,7 @@ angular.module('adminManagePlacesController', ['placeService', 'mapService'])
                 for(var i = 0; i < path.length; i++) manager.placeForm.path.push(path[i].toJSON());
                 if(manager.placeFormMode == 'new'){
                     //ADD NEW
+                    var preloader = new Dialog.preloader('Adding new place...');
                     $http.post('api/places/new', manager.placeForm, {
                         responseType: 'json'
                     }).then(function (response) {
@@ -100,9 +101,11 @@ angular.module('adminManagePlacesController', ['placeService', 'mapService'])
                         manager.placeFormErrorMessage = 'Error: ' + err.statusText;
                     }).finally(function () {
                         manager.resetPlaceForm();
+                        preloader.destroy();
                     });
                 } else {
                     //UPDATE
+                    var preloader = new Dialog.preloader('Updating place...');
                     if(angular.equals(manager.currentPolygonPath, path)) delete manager.placeForm.path;
                     $http.put('api/places/update/' + manager.placeForm.barangay_id, manager.placeForm, {
                         responseType: 'json'
@@ -113,6 +116,7 @@ angular.module('adminManagePlacesController', ['placeService', 'mapService'])
                         manager.placeFormErrorMessage = 'Error: ' + err.statusText;
                     }).finally(function () {
                         manager.resetPlaceForm();
+                        preloader.destroy();
                     });
                 }
             }
@@ -120,6 +124,7 @@ angular.module('adminManagePlacesController', ['placeService', 'mapService'])
         manager.deletePlace = function () {
             Dialog.confirm('Delete Place?', 'Do you want to delete <b>' + manager.placeForm.barangay_name +'</b>?', function (result) {
                 if(result){
+                    var preloader = new Dialog.preloader('Deleting place...');
                     manager.placeFormSuccessMessage = undefined;
                     manager.placeFormErrorMessage = undefined;
                     $http.delete('api/places/delete/' + manager.placeForm.barangay_id, {}, {
@@ -134,11 +139,12 @@ angular.module('adminManagePlacesController', ['placeService', 'mapService'])
                         manager.placeFormErrorMessage = 'Error: ' + err.statusText;
                     }).finally(function () {
                         manager.resetPlaceForm();
+                        preloader.destroy();
                     });
                 }
             })
         };
-        manager.loadMorePlaces = function () {
+        manager.loadMorePlaces = function (callback) {
             if(!manager.searchBusy && !manager.searchMax){
                 manager.searchBusy = true;
                 PlaceSv.searchNamesWithInfo(manager.searchKeyword, (manager.currentPage + 1), function (err, data) {
@@ -151,13 +157,17 @@ angular.module('adminManagePlacesController', ['placeService', 'mapService'])
                         });
                     }
                     manager.searchBusy = false;
+                    if(callback) callback();
                 });
             }
         };
         manager.searchPlace = function (e) {
+            var preloader = new Dialog.preloader('Searching places...');
             e.preventDefault();
             manager.resetSeacrh();
-            manager.loadMorePlaces();
+            manager.loadMorePlaces(function () {
+                preloader.destroy();
+            });
         };
         manager.loadDistricts = function () {
             PlaceSv.getDistricts(function (err, data) {
@@ -169,6 +179,7 @@ angular.module('adminManagePlacesController', ['placeService', 'mapService'])
             $('#manageDistrictModal').modal('hide');
             Dialog.prompt('Add New District', 'Please enter new name of district', function (result) {
                 if(result){
+                    var preloader = new Dialog.preloader('Adding new district...');
                     $http.post('api/places/new-district', {
                         district_name: result
                     }, {
@@ -185,6 +196,8 @@ angular.module('adminManagePlacesController', ['placeService', 'mapService'])
                         Dialog.alert('Error', 'Error: ' + err.statusText, function () {
                             $('#manageDistrictModal').modal('show');
                         });
+                    }).finally(function () {
+                        preloader.destroy();
                     })
                 }
             }, {
@@ -197,6 +210,7 @@ angular.module('adminManagePlacesController', ['placeService', 'mapService'])
             $('#manageDistrictModal').modal('hide');
             Dialog.prompt('Rename District', 'Please enter new name of district', function (result) {
                 if(result){
+                    var preloader = new Dialog.preloader('Renaming district...');
                     $http.put('api/places/update-district/' + manager.districts[index].id, {
                         district_name: result
                     }, {
@@ -213,7 +227,9 @@ angular.module('adminManagePlacesController', ['placeService', 'mapService'])
                         Dialog.alert('Error', 'Error: ' + err.statusText, function () {
                             $('#manageDistrictModal').modal('show');
                         });
-                    })
+                    }).finally(function () {
+                        preloader.destroy();
+                    });
                 }
             }, {
                 label: 'District Name',
@@ -226,6 +242,7 @@ angular.module('adminManagePlacesController', ['placeService', 'mapService'])
             $('#manageDistrictModal').modal('hide');
             Dialog.confirm('Delete District', 'Do you want to delete <b>' + manager.districts[index].name + '</b> district?', function (result) {
                 if(result){
+                    var preloader = new Dialog.preloader('Deleting district...');
                     $http.delete('api/places/delete-district/' + manager.districts[index].id, {}, {
                         responseType: 'json'
                     }).then(function (response) {
@@ -240,7 +257,9 @@ angular.module('adminManagePlacesController', ['placeService', 'mapService'])
                         Dialog.alert('Error', 'Error: ' + err.statusText, function () {
                             $('#manageDistrictModal').modal('show');
                         });
-                    })
+                    }).finally(function () {
+                        preloader.destroy();
+                    });
                 }
             });
         };
