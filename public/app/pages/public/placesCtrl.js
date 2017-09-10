@@ -4,7 +4,10 @@ angular.module('publicCtrls')
         places.chart = {
             options: {
                 legend: {display: true, position: 'bottom'},
-                title: {display: true, text: 'Number of Barangays per District'}
+                title: {display: true, text: 'Number of Barangays per District'},
+                onClick: function (e,items) {
+                    if(items.length > 0) $('#collapse_' + items[0]._index).collapse('toggle');
+                }
             },
             labels: [],
             data: []
