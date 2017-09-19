@@ -90,7 +90,7 @@
                                     {{main.user.firstname[0].toUpperCase() + main.user.middlename[0].toUpperCase() + ' ' + main.user.lastname}}
                                 </a>
                                 <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                                    <a class="dropdown-item" href="#/{{main.user.type}}/dashboard">Dashboard</a>
+                                    <a class="dropdown-item" href="#/{{main.user.UserType.code}}/dashboard">Dashboard</a>
                                     <a class="dropdown-item" href="#/settings">Settings</a>
                                     <button type="button" ng-click="main.logout();" class="dropdown-item">Logout</button>
                                 </div>

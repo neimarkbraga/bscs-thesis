@@ -10,4 +10,6 @@ var userType = sequelize.define('UserType', {
     freezeTableName: true,
     tableName: 'user_type'
 });
+
+
 module.exports = userType;

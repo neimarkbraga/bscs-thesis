@@ -123,22 +123,35 @@ router.post('/user/authenticate', function (req, res) {
     });
 });
 router.get('/user/me', function (req, res) {
-    userPassport.validateByUsername(req.session.username, function (err, user) {
-        if(err) res.json({success: false, message: err});
-        else {
-            user = user.get({raw: true});
-            if(!user.barangay) delete user.barangay;
-            delete user.password;
-            delete user.enabled;
-            delete user.createdAt;
-            delete user.updatedAt;
-            res.json({success: true, user: user});
-        }
+    db.models.User.findAll({
+        attributes: { exclude: ['password', 'enabled', 'type', 'barangay', 'createdAt', 'updatedAt']},
+        where: {
+            username: req.session.username,
+            enabled: true
+        },
+        include: [
+            { model: db.models.UserType, attributes: { exclude: ['createdAt', 'updatedAt']} },
+            { model: db.models.Barangay, attributes: { exclude: ['createdAt', 'updatedAt']} }
+        ]
+    }).then(function (users) {
+        if(users.length > 0) res.send(users[0]);
+        else res.send({error: ['You are not logged in.']});
+    }).catch(function (error) {
+        res.send({error: ['An unknown error occurred']});
     });
 });
 router.get('/user/logout', function (req, res) {
     req.session.destroy();
     res.json({success: true});
+});
+router.get('/user/types', function (req, res) {
+    db.models.UserType.findAll({
+        attributes: { exclude: ['createdAt', 'updatedAt']}
+    }).then(function (userTypes) {
+        res.json(userTypes);
+    }).catch(function () {
+        res.json({error: ['Cannot retrieve data.']});
+    });
 });
 router.get('/user/list', function (req, res) {
 
@@ -160,7 +173,13 @@ router.get('/user/list', function (req, res) {
 
         //retrieve data
         function (callback) {
-            var query = {attributes: { exclude: ['password', 'enabled', 'createdAt', 'updatedAt']}};
+            var query = {
+                attributes: { exclude: ['password', 'enabled', 'createdAt', 'updatedAt', 'type', 'barangay']},
+                include: [
+                    { model: db.models.UserType, attributes: { exclude: ['createdAt', 'updatedAt']} },
+                    { model: db.models.Barangay, attributes: { exclude: ['createdAt', 'updatedAt']} }
+                ]
+            };
             if(req.query.q) {
                 var value = req.query.q.replace(/ /g, '%');
                 value = '%'+value+'%';
@@ -185,10 +204,9 @@ router.get('/user/list', function (req, res) {
                 else callback(null, results);
             });
         }
-
     ], function (err, data) {
-        if(err) res.send({success: false, message: err});
-        else res.send({success: true, data: data});
+        if(err) res.send({error: [err]});
+        else res.send(data);
     })
 });
 router.put('/user/change-password', function (req, res) {

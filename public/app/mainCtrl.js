@@ -63,7 +63,7 @@ angular.module('mainController', [])
             var authorizedUser = function () {
                 if(!next.allowedUsers) return true;
                 else if(!main.user) return false;
-                else return next.allowedUsers.indexOf(main.user.type) > -1;
+                else return next.allowedUsers.indexOf(main.user.UserType.code) > -1;
             };
 
             if(!next.redirectTo){
@@ -75,8 +75,8 @@ angular.module('mainController', [])
                     serverSv.auth.me()
                         .then(function (response) {
                             var data = response.data;
-                            if(data.success) main.user = response.data.user;
-                            else throw data;
+                            if(data.error) throw data;
+                            else main.user = data;
                         }).catch(function (err) {
                             main.user = undefined;
                             //throw err;

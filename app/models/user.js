@@ -20,6 +20,13 @@ var User = sequelize.define('User', {
     tableName: 'user'
 });
 
+User.belongsTo(UserType, {
+    foreignKey: 'type'
+});
+User.belongsTo(Barangay, {
+    foreignKey: 'barangay'
+});
+
 User.prototype.comparePassword = function (password) {
     return bcrypt.compareSync(password, this.password);
 };

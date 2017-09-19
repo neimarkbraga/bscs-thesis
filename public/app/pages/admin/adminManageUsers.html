@@ -1,17 +1,36 @@
-<div class="container">
+<div class="container" on-scroll-to-bottom="manager.loadMoreItems();">
     <h3 class="pt-3">Manage Users</h3>
     <hr />
-    <form>
+    <form ng-submit="manager.search(searchKeyword);">
         <div class="input-group">
-            <input type="text" class="form-control" placeholder="Search">
+            <input type="text" class="form-control" ng-model="searchKeyword" placeholder="Search">
             <span class="input-group-btn">
-            <button class="btn btn-secondary" type="button">Search</button>
-        </span>
+                <button class="btn btn-primary" ng-disabled="manager.searchValues.busy" type="submit">Search</button>
+                <button class="btn btn-dark" data-toggle="modal" data-target="#manageDistrictModal" type="submit">Add New User</button>
+            </span>
         </div>
     </form>
-
-    <p class="text-center text-secondary">End of Result</p>
-    <div class="p-2">
+    <p ng-show="manager.searchValues.keyword" class="text-secondary">Searched for: "{{manager.searchValues.keyword}}"</p>
+    <table class="table mt-3">
+        <thead>
+            <tr>
+                <th>Fullname</th>
+                <th>Account Type</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="user in manager.userList track by $index">
+                <td>{{user.firstname + ' ' + user.lastname + ' ' + user.middlename}}</td>
+                <td>{{user.UserType.name}}</td>
+                <td>
+                    <button class="btn">Edit</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <p ng-show="manager.searchValues.end" class="text-center text-secondary">End of Result</p>
+    <div ng-show="manager.searchValues.busy" class="p-2">
         <div class="pre-loader m-auto"></div>
     </div>
 </div>
