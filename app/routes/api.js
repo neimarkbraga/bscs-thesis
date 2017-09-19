@@ -185,6 +185,7 @@ router.get('/user/list', function (req, res) {
                 else callback(null, results);
             });
         }
+
     ], function (err, data) {
         if(err) res.send({success: false, message: err});
         else res.send({success: true, data: data});

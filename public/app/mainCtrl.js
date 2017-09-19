@@ -1,5 +1,5 @@
 angular.module('mainController', [])
-    .controller('mainCtrl', function ($scope, $location, $route, Auth) {
+    .controller('mainCtrl', function ($scope, $location, $route, serverSv) {
 
         //private properties
         var main = this;
@@ -29,7 +29,7 @@ angular.module('mainController', [])
             main.loginDisabled = true;
             main.loginErrorMessage = undefined;
             var preloader = new Dialog.preloader('Logging in...');
-            Auth.authenticate(main.loginForm).then(function (response) {
+            serverSv.auth.login(main.loginForm).then(function (response) {
                 if(response.data.success) {
                     main.loginForm = {};
                     $('#loginModal').modal('hide');
@@ -45,7 +45,7 @@ angular.module('mainController', [])
         };
         main.logout = function () {
             var preloader = new Dialog.preloader('Logging out...');
-            Auth.logout()
+            serverSv.auth.logout()
                 .then(function (response) {
                     if(response.data.success){
                         main.user = undefined;
@@ -72,7 +72,7 @@ angular.module('mainController', [])
                 else {
                     event.preventDefault();
                     main.pageLoading = true;
-                    Auth.me()
+                    serverSv.auth.me()
                         .then(function (response) {
                             var data = response.data;
                             if(data.success) main.user = response.data.user;

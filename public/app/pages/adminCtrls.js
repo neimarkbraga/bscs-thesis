@@ -1,1 +1,1 @@
-angular.module('adminCtrls', ['placeService', 'mapService']);
+angular.module('adminCtrls', []);

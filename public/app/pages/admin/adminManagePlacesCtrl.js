@@ -1,5 +1,5 @@
 angular.module('adminCtrls')
-    .controller('adminManagePlacesCtrl', function ($rootScope, $routeParams, $location, $http, PlaceSv, MapSv) {
+    .controller('adminManagePlacesCtrl', function ($rootScope, $routeParams, $location, serverSv, mapSv) {
         var manager = this;
         manager.resetSeacrh = function () {
             manager.currentPage = 0;
@@ -13,7 +13,7 @@ angular.module('adminCtrls')
                 draggable: true
             };
 
-            manager.map = new google.maps.Map(document.getElementById('map'), MapSv.defaultMapOptions);
+            manager.map = new google.maps.Map(document.getElementById('map'), mapSv.defaultMapOptions);
             manager.drawingManager = new google.maps.drawing.DrawingManager({
                 map: manager.map,
                 drawingControl: true,
@@ -31,7 +31,7 @@ angular.module('adminCtrls')
                 .on('shown.bs.modal', function () {
                     google.maps.event.trigger(map, "resize");
                     if(manager.mapBounds) manager.map.fitBounds(manager.mapBounds);
-                    else manager.map.setOptions(MapSv.defaultMapOptions);
+                    else manager.map.setOptions(mapSv.defaultMapOptions);
                 }).on('hidden.bs.modal', function () {
                 if(manager.mapPolygon) manager.mapPolygon.setMap(null);
                 manager.mapBounds = undefined;
@@ -53,7 +53,7 @@ angular.module('adminCtrls')
                 $(formModal).modal('show');
             }
             else {
-                PlaceSv.getPath(placeClone.BARANGAY_ID, function (err, data) {
+                serverSv.places.getPath(placeClone.BARANGAY_ID, function (err, data) {
                     if(err) Dialog.alert('Error Loading Places', err.message || 'Error retrieving data from server');
                     else {
                         manager.placeForm = {
@@ -68,7 +68,7 @@ angular.module('adminCtrls')
                         manager.mapPolygon = new google.maps.Polygon(polygonOptions);
                         manager.mapPolygon.setMap(manager.map);
                         manager.drawingManager.setDrawingMode(null);
-                        manager.mapBounds = MapSv.getPolygonBounds(manager.mapPolygon);
+                        manager.mapBounds = mapSv.getPolygonBounds(manager.mapPolygon);
                         manager.currentPolygonPath = angular.copy(manager.mapPolygon.getPath().getArray());
                         $(formModal).modal('show');
                     }
@@ -86,14 +86,16 @@ angular.module('adminCtrls')
             manager.placeFormErrorMessage = undefined;
             if(!manager.mapPolygon) manager.placeFormErrorMessage = 'You have to draw the area of the place.';
             else {
+                var preloader = undefined;
                 var path = manager.mapPolygon.getPath().getArray();
                 manager.placeForm.path = [];
                 for(var i = 0; i < path.length; i++) manager.placeForm.path.push(path[i].toJSON());
                 if(manager.placeFormMode == 'new'){
                     //ADD NEW
-                    var preloader = new Dialog.preloader('Adding new place...');
-                    $http.post('api/places/new', manager.placeForm, {
-                        responseType: 'json'
+                    preloader = new Dialog.preloader('Adding new place...');
+                    serverSv.request('/api/places/new', {
+                        method: 'post',
+                        data: manager.placeForm
                     }).then(function (response) {
                         if(response.data.success) manager.placeFormSuccessMessage = 'Place added successfully.';
                         else manager.placeFormErrorMessage = 'Error: ' + response.data.message;
@@ -105,10 +107,11 @@ angular.module('adminCtrls')
                     });
                 } else {
                     //UPDATE
-                    var preloader = new Dialog.preloader('Updating place...');
+                    preloader = new Dialog.preloader('Updating place...');
                     if(angular.equals(manager.currentPolygonPath, path)) delete manager.placeForm.path;
-                    $http.put('api/places/update/' + manager.placeForm.barangay_id, manager.placeForm, {
-                        responseType: 'json'
+                    serverSv.request('/api/places/update/' + manager.placeForm.barangay_id, {
+                        method: 'put',
+                        data: manager.placeForm
                     }).then(function (response) {
                         if(response.data.success) manager.placeFormSuccessMessage = 'Place updated successfully.';
                         else manager.placeFormErrorMessage = 'Error: ' + response.data.message;
@@ -127,8 +130,8 @@ angular.module('adminCtrls')
                     var preloader = new Dialog.preloader('Deleting place...');
                     manager.placeFormSuccessMessage = undefined;
                     manager.placeFormErrorMessage = undefined;
-                    $http.delete('api/places/delete/' + manager.placeForm.barangay_id, {}, {
-                        responseType: 'json'
+                    serverSv.request('/api/places/delete/' + manager.placeForm.barangay_id, {
+                        method: 'delete'
                     }).then(function (response) {
                         if(response.data.success) {
                             manager.placeFormSuccessMessage = 'Place deleted successfully.';
@@ -147,7 +150,7 @@ angular.module('adminCtrls')
         manager.loadMorePlaces = function (callback) {
             if(!manager.searchBusy && !manager.searchMax){
                 manager.searchBusy = true;
-                PlaceSv.searchNamesWithInfo(manager.searchKeyword, (manager.currentPage + 1), function (err, data) {
+                serverSv.places.searchNamesWithInfo(manager.searchKeyword, (manager.currentPage + 1), function (err, data) {
                     if(err) Dialog.alert('Error Loading Places', err.message || 'Error retrieving data from server');
                     else {
                         manager.currentPage++;
@@ -170,7 +173,7 @@ angular.module('adminCtrls')
             });
         };
         manager.loadDistricts = function () {
-            PlaceSv.getDistricts(function (err, data) {
+            serverSv.places.getDistricts(function (err, data) {
                 if(err) Dialog.alert('Error Loading Places', err.message || 'Error retrieving data from server');
                 else manager.districts = data;
             });
@@ -180,10 +183,12 @@ angular.module('adminCtrls')
             Dialog.prompt('Add New District', 'Please enter new name of district', function (result) {
                 if(result){
                     var preloader = new Dialog.preloader('Adding new district...');
-                    $http.post('api/places/new-district', {
-                        district_name: result
-                    }, {
-                        responseType: 'json'
+
+                    serverSv.request('/api/places/new-district', {
+                        method: 'post',
+                        data: {
+                            district_name: result
+                        }
                     }).then(function (response) {
                         if(response.data.success) {
                             Dialog.alert('Success', 'District added successfully.', function () {
@@ -211,10 +216,11 @@ angular.module('adminCtrls')
             Dialog.prompt('Rename District', 'Please enter new name of district', function (result) {
                 if(result){
                     var preloader = new Dialog.preloader('Renaming district...');
-                    $http.put('api/places/update-district/' + manager.districts[index].id, {
-                        district_name: result
-                    }, {
-                        responseType: 'json'
+                    serverSv.request('/api/places/update-district/' + manager.districts[index].id, {
+                        method: 'put',
+                        data: {
+                            district_name: result
+                        }
                     }).then(function (response) {
                         if(response.data.success) {
                             Dialog.alert('Success', 'District renamed successfully.', function () {
@@ -243,8 +249,8 @@ angular.module('adminCtrls')
             Dialog.confirm('Delete District', 'Do you want to delete <b>' + manager.districts[index].name + '</b> district?', function (result) {
                 if(result){
                     var preloader = new Dialog.preloader('Deleting district...');
-                    $http.delete('api/places/delete-district/' + manager.districts[index].id, {}, {
-                        responseType: 'json'
+                    serverSv.request('/api/places/delete-district/' + manager.districts[index].id, {
+                        method: 'delete'
                     }).then(function (response) {
                         if(response.data.success) {
                             Dialog.alert('Success', 'District deleted successfully.', function () {

@@ -37,7 +37,9 @@
         </tbody>
         <tfoot>
             <tr ng-show="manager.searchBusy">
-                <td colspan="5" class="text-center text-secondary">Loading...</td>
+                <td colspan="5" class="text-center text-secondary">
+                    <div class="pre-loader m-auto"></div>
+                </td>
             </tr>
             <tr ng-show="manager.searchMax">
                 <td colspan="5" class="text-center text-secondary">End of Result.</td>
@@ -56,7 +58,7 @@
                         </h4>
                     </div>
                     <div class="modal-body">
-                        <div id="map" style="height: 50vh;">
+                        <div id="map" style="height: 50vh; min-height: 500px;">
 
                         </div>
                         <div class="form-group pt-3">

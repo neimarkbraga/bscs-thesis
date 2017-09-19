@@ -1,5 +1,5 @@
 angular.module('publicCtrls')
-    .controller('placesCtrl', function (PlaceSv) {
+    .controller('placesCtrl', function (serverSv) {
         var places = this;
         places.chart = {
             options: {
@@ -14,7 +14,7 @@ angular.module('publicCtrls')
         };
         places.district = {};
         places.init = function () {
-            PlaceSv.searchNamesWithInfo(undefined, undefined, function (err, data) {
+            serverSv.places.searchNamesWithInfo(undefined, undefined, function (err, data) {
                 if(err) throw err;
                 for(var i = 0; i < data.length; i++){
                     if(!places.district[data[i].DISTRICT_NAME]) places.district[data[i].DISTRICT_NAME] = [];

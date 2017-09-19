@@ -1,5 +1,6 @@
 angular.module('app', [
-    'authService',
+    'serverService',
+    'mapService',
     'appRoute',
     'ngAnimate',
     'chart.js',

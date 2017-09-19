@@ -1,5 +1,5 @@
 angular.module('mapService', [])
-    .factory('MapSv', function () {
+    .factory('mapSv', function () {
         return {
             defaultMapOptions: {
                 center: {
