@@ -1,7 +1,11 @@
 angular.module('mainController', [])
-    .controller('mainCtrl', function ($scope, $location, $interval, Auth) {
+    .controller('mainCtrl', function ($scope, $location, $route, Auth) {
+
+        //private properties
         var main = this;
-        //initialize variables
+        var nextPath = undefined;
+
+        //public properties
         main.user = undefined;
         main.loginDisabled = false;
         main.loginErrorMessage = undefined;
@@ -19,33 +23,7 @@ angular.module('mainController', [])
             ]}
         ];
 
-        //page authorization
-        $scope.$on('$routeChangeStart', function (event, next, prev) {
-            var authorizedUser = function () {
-                if(!next.allowedUsers) return true;
-                else if(!main.user) return false;
-                else return next.allowedUsers.indexOf(main.user.type) > -1;
-            };
-            if(!next.redirectTo){
-                if(main.pageLoading == true) event.preventDefault();
-                else {
-                    main.pageLoading = true;
-                    Auth.me()
-                        .then(function (response) {
-                            if(response.data.success) main.user = response.data.user;
-                            else main.user = undefined;
-                        }).catch(function (err) {
-                        main.user = undefined;
-                        throw err;
-                    }).finally(function () {
-                        main.pageLoading = false;
-                        if(!authorizedUser()) $location.path('/');
-                    });
-                }
-            }
-        });
-
-        //login
+        //methods
         main.loginSubmit = function (e) {
             e.preventDefault();
             main.loginDisabled = true;
@@ -65,8 +43,6 @@ angular.module('mainController', [])
                 preloader.destroy();
             });
         };
-
-        //logout
         main.logout = function () {
             var preloader = new Dialog.preloader('Logging out...');
             Auth.logout()
@@ -76,9 +52,41 @@ angular.module('mainController', [])
                         $location.path('/');
                     } else Dialog.alert('Something went wrong', 'Cannot communicate to server.');
                 }).catch(function (err) {
-                    Dialog.alert('Something went wrong', 'Error: ' + err.statusText);
-                }).finally(function () {
-                    preloader.destroy();
-                });
+                Dialog.alert('Something went wrong', 'Error: ' + err.statusText);
+            }).finally(function () {
+                preloader.destroy();
+            });
         };
+
+        //event handlers
+        $scope.$on('$routeChangeStart', function (event, next, prev) {
+            var authorizedUser = function () {
+                if(!next.allowedUsers) return true;
+                else if(!main.user) return false;
+                else return next.allowedUsers.indexOf(main.user.type) > -1;
+            };
+
+            if(!next.redirectTo){
+                if(main.pageLoading == true) event.preventDefault();
+                else if(nextPath) nextPath = undefined;
+                else {
+                    event.preventDefault();
+                    main.pageLoading = true;
+                    Auth.me()
+                        .then(function (response) {
+                            var data = response.data;
+                            if(data.success) main.user = response.data.user;
+                            else throw data;
+                        }).catch(function (err) {
+                            main.user = undefined;
+                            //throw err;
+                        }).finally(function () {
+                            main.pageLoading = false;
+                            nextPath = (authorizedUser())? next.originalPath:'/';
+                            if($location.path() == nextPath) $route.reload();
+                            else $location.path(nextPath);
+                        });
+                }
+            }
+        });
     });
