@@ -58,6 +58,9 @@ angular.module('serverService', [])
                         }).catch(function (err) {
                         callback(err);
                     });
+                },
+                getBarangays: function () {
+                    return service.request('/api/places/barangays');
                 }
             }
         };

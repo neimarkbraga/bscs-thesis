@@ -27,16 +27,16 @@ var db                  =   require('../models');
 
 router.post('/user/register', function (req, res) {
     async.waterfall([
-        
+
         //check session & fields
         function (callback) {
             if(!req.session.username) callback('Unauthorized Access.');
             else if(!req.body.username) callback('username is required.');
-            else if(!req.body.password) callback('password is required.');
             else if(!req.body.type) callback('type is required.');
             else if(!req.body.firstname) callback('firstname is required.');
             else if(!req.body.middlename) callback('middlename is required.');
             else if(!req.body.lastname) callback('lastname is required.');
+            else if((req.body.type == 'BRGY') && !req.body.barangay) callback('barangay is required.');
             else callback();
         },
 
@@ -65,7 +65,7 @@ router.post('/user/register', function (req, res) {
             //save details
             var user = new db.models.User();
              user.username = req.body.username;
-             user.password = req.body.password;
+             user.password = req.body.username;
              user.type = req.body.type;
              user.firstname = req.body.firstname;
              user.middlename = req.body.middlename;
@@ -77,7 +77,7 @@ router.post('/user/register', function (req, res) {
              });
         }
     ], function (err) {
-        if(err) res.send({success: false, message: err});
+        if(err) res.json({error: [err]});
         else res.send({success: true, message: 'User registered.'});
     });
 });
@@ -177,7 +177,16 @@ router.get('/user/list', function (req, res) {
                 attributes: { exclude: ['password', 'enabled', 'createdAt', 'updatedAt', 'type', 'barangay']},
                 include: [
                     { model: db.models.UserType, attributes: { exclude: ['createdAt', 'updatedAt']} },
-                    { model: db.models.Barangay, attributes: { exclude: ['createdAt', 'updatedAt']} }
+                    {
+                        model: db.models.Barangay,
+                        attributes: { exclude: ['createdAt', 'updatedAt']},
+                        include: [
+                            {
+                                model: db.models.District,
+                                attributes: { exclude: ['createdAt', 'updatedAt']}
+                            }
+                        ]
+                    }
                 ]
             };
             if(req.query.q) {
@@ -195,7 +204,7 @@ router.get('/user/list', function (req, res) {
 
             if(req.query.p){
                 var count = 10;
-                query.offset = (parseInt(req.query.p) - 1);
+                query.offset = (parseInt(req.query.p) - 1) * count;
                 query.limit = count;
             }
 
@@ -210,6 +219,42 @@ router.get('/user/list', function (req, res) {
     })
 });
 router.put('/user/change-password', function (req, res) {
+    async.waterfall([
+
+        //check fields
+        function (callback) {
+            if(!req.session.username) callback('Unauthorized Access.');
+            else if(!req.body.old_password) callback('old_password is required.');
+            else if(!req.body.new_password) callback('new_password is required.');
+            else if(req.body.new_password.length < 6) callback('new_password password must be at least 6 characters.');
+            else callback();
+        },
+
+        //validate account
+        function (callback) {
+            userPassport.validateByUsername(req.session.username, function (err, user) {
+                if(err) callback(err);
+                else if(!user.comparePassword(req.body.old_password)) callback ('Wrong old password.');
+                else callback(null, user);
+            });
+        },
+
+        //save password
+        function (user, callback) {
+            user.password = user.bcryptPassword(req.body.new_password);
+            promiseToCallback(user.save())(function (err, user) {
+                if(err) callback(err.message || 'Error updating password');
+                else callback();
+            });
+        }
+    ], function (err) {
+        if(err) res.send({success: false, message: err});
+        else res.send({success: true, message: 'Password updated.'});
+    });
+});
+
+//to be coded
+router.put('/user/reset-password/:username', function (req, res) {
     async.waterfall([
 
         //check fields
@@ -379,6 +424,28 @@ router.get('/places/names-with-info', function (req, res) {
         res.send({success: true, data: result[0]});
     }).catch(function (err) {
         res.send({success: false, message: err.message || 'Cannot retrieve data from database'});
+    });
+});
+router.get('/places/barangays', function (req, res) {
+    db.models.Barangay.findAll({
+        attributes: { exclude: ['createdAt', 'updatedAt', 'district']},
+        include: [
+            {
+                model: db.models.District,
+                attributes: { exclude: ['createdAt', 'updatedAt', 'city']},
+                include: [
+                    {
+                        model: db.models.City,
+                        attributes: { exclude: ['createdAt', 'updatedAt']}
+                    }
+                ]
+            }
+        ]
+    }).then(function (barangays) {
+        res.json(barangays);
+    }).catch(function (error) {
+        console.log(error);
+        res.json({error: ['Cannot retrieve barangays']});
     });
 });
 router.get('/places/districts', function (req, res) {

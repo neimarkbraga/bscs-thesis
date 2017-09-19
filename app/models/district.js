@@ -12,4 +12,8 @@ var District = sequelize.define('District', {
     freezeTableName: true,
     tableName: 'district'
 });
+
+District.belongsTo(City, {
+   foreignKey: 'city'
+});
 module.exports = District;

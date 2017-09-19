@@ -13,4 +13,9 @@ var Barangay = sequelize.define('Barangay', {
     freezeTableName: true,
     tableName: 'barangay'
 });
+
+Barangay.belongsTo(District, {
+    foreignKey: 'district'
+});
+
 module.exports = Barangay;
