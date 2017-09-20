@@ -18,10 +18,6 @@ var db                  =   require('../models');
     3. Barangay
 */
 
-
-
-
-
 //===============================================
 //  1. User
 //===============================================
@@ -348,14 +344,60 @@ router.post('/district', function (req, res) {
         else res.send({success: true});
     });
 });
+router.get('/district', function (req, res) {
+    async.waterfall([
+
+        //retrieve list
+        function (callback) {
+            var query = {
+                attributes: { exclude: ['city', 'createdAt', 'updatedAt']},
+                include: [
+                    {
+                        model: db.models.City,
+                        attributes: { exclude: ['createdAt', 'updatedAt']}
+                    }
+                ]
+            };
+            var keyword = req.query.keyword;
+            var page = req.query.page;
+            var count = req.query.count || 10;
+
+            //search keyword
+            if(keyword) {
+                keyword = '%' + keyword.replace(/ /g, '%') + '%';
+                query.where = {name: {$like: keyword}};
+            }
+
+            //page
+            if(page){
+                page = parseInt(page);
+                count = parseInt(count);
+                query.offset = (page - 1) * count;
+                query.limit = count;
+            }
+
+            //query
+            db.models.District.findAll(query)
+                .then(function (districts) {
+                    callback(null, districts);
+                }).catch(function (err) {
+                callback(['api:2x5', err.message || 'Error retrieving data']);
+            });
+        }
+
+    ], function (err, districts) {
+        if(err) res.send({error: err});
+        else res.send(districts);
+    });
+});
 router.put('/district/:id', function (req, res) {
     async.waterfall([
 
         //validate user and fields
         function (callback) {
-            if(!res.locals.user) callback(['api:2x5', 'You are not logged in.']);
-            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:2x6', 'Unauthorized Access.']);
-            else if(!req.body.name) callback(['api:2x7', 'name is required.']);
+            if(!res.locals.user) callback(['api:2x6', 'You are not logged in.']);
+            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:2x7', 'Unauthorized Access.']);
+            else if(!req.body.name) callback(['api:2x8', 'name is required.']);
             else callback();
         },
 
@@ -363,10 +405,10 @@ router.put('/district/:id', function (req, res) {
         function (callback) {
             db.models.District.findById(req.params.id)
                 .then(function (district) {
-                     if(!district) callback(['api:2x8', 'District ID doesn\'t exist.']);
+                     if(!district) callback(['api:2x9', 'District ID doesn\'t exist.']);
                      else callback(null, district);
                 }).catch(function (err) {
-                    callback(['api:2x9', err.message || 'Cannot retrieve data.']);
+                    callback(['api:2x10', err.message || 'Cannot retrieve data.']);
                 });
         },
 
@@ -377,7 +419,7 @@ router.put('/district/:id', function (req, res) {
                 .then(function () {
                     callback();
                 }).catch(function (err) {
-                callback(['api:2x10', err.message || 'Error updating district name.']);
+                callback(['api:2x11', err.message || 'Error updating district name.']);
             });
         }
 
@@ -391,8 +433,8 @@ router.delete('/district/:id', function (req, res) {
 
         //validate user and fields
         function (callback) {
-            if(!res.locals.user) callback(['api:2x11', 'You are not logged in.']);
-            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:2x12', 'Unauthorized Access.']);
+            if(!res.locals.user) callback(['api:2x12', 'You are not logged in.']);
+            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:2x13', 'Unauthorized Access.']);
             else callback();
         },
 
@@ -400,10 +442,10 @@ router.delete('/district/:id', function (req, res) {
         function (callback) {
             db.models.District.findById(req.params.id)
                 .then(function (district) {
-                    if(!district) callback(['api:2x13', 'District ID doesn\'t exist.']);
+                    if(!district) callback(['api:2x14', 'District ID doesn\'t exist.']);
                     else callback(null, district);
                 }).catch(function (err) {
-                callback(['api:2x14', err.message || 'Cannot retrieve data.']);
+                callback(['api:2x15', err.message || 'Cannot retrieve data.']);
             });
         },
 
@@ -413,7 +455,7 @@ router.delete('/district/:id', function (req, res) {
                 .then(function () {
                     callback();
                 }).catch(function (err) {
-                callback(['api:2x15', err.message || 'Cannot delete district.']);
+                callback(['api:2x16', err.message || 'Cannot delete district.']);
             });
         }
 
