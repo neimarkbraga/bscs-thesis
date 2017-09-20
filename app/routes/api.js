@@ -4,16 +4,17 @@ var express             =   require('express');
 var router              =   express.Router();
 var db                  =   require('../models');
 
+
+
+//  Author:     Neimark Junsay Braga
+//  Date:       9/20/17
+//  Details:    Converting my thesis into api
 //===============================================
 //      TABLE OF CONTENTS
 //===============================================
 /*
-
     1. User
-        -me
-        -register
-        -authenticate
-    2. Places
+    2. Place
 */
 
 
@@ -275,18 +276,47 @@ router.put('/user/password/reset/:username', function (req, res) {
         else res.send({success: true});
     });
 });
+router.delete('/user/:username', function (req, res) {
+    async.waterfall([
 
+        //validate account
+        function (callback) {
+            if(!res.locals.user) callback(['api:1x36', 'You are not logged in.']);
+            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:1x37?', 'Unauthorized Access.']);
+            else callback();
+        },
 
+        //retrieve user
+        function (callback) {
+            db.models.User.findById(req.params.username)
+                .then(function (user) {
+                    if(!user) callback(['api:1x38', 'Username doesn\'t exist.']);
+                    else callback(null, user);
+                }).catch(function (err) {
+                callback(['api:1x39', err.message || 'Cannot retrieve data.']);
+            });
+        },
 
+        //delete user
+        function (user, callback) {
 
-//to be coded
-router.delete('/user/delete/:username', function () {
+            user.destroy()
+                .then(function () {
+                    callback();
+                }).catch(function (err) {
+                callback(['api:1x40', err.message || 'Unable to delete user.']);
+            });
+        }
 
+    ], function (err) {
+        if(err) res.send({error: err});
+        else res.send({success: true});
+    });
 });
 
 
 //===============================================
-//  2. Places
+//  2. Place
 //===============================================
 
 
