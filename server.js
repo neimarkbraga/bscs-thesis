@@ -49,6 +49,8 @@ app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(session(sessionOption));
+
+//set res locals
 app.use(function (req, res, next) {
     res.locals.appSettings = appSettings;
     next();
@@ -89,9 +91,17 @@ app.use(function (req, res, next) {
     });
 });
 
+//user passport on pages
+app.use(['/admin', '/brgy', '/cswd', '/cdrrmo'], function (req, res, next) {
+    var accountType = req.originalUrl.split('/')[1].toUpperCase();
+    if((!res.locals.user) || (res.locals.user.UserType.code != accountType)) throw 'Unauthorized Access';
+    else next();
+});
+
 //routes
-app.use('/api', require('./app/routes/api'));
 app.use('/', require('./app/routes/public'));
+app.use('/api', require('./app/routes/api'));
+app.use('/admin', require('./app/routes/admin'));
 
 //page not found
 app.use(function (req, res) {
@@ -99,8 +109,11 @@ app.use(function (req, res) {
 });
 
 //error handler
-app.use(function (err, req, res) {
-    res.send(err);
+app.use(function (err, req, res, next) {
+    var message = (err.constructor == String)? err:(err.message || 'Unable to execute a code in server.');
+    res.render('pages/public/page-error', {
+        errorMessage: message
+    });
 });
 
 //start sever

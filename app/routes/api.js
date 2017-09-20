@@ -64,7 +64,7 @@ router.get('/user/me', function (req, res) {
     if(!res.locals.user) res.json({error: ['api:1x6', 'Not logged in.']});
     else res.json(res.locals.user);
 });
-router.use('/user/logout', function (req, res) {
+router.get('/user/logout', function (req, res) {
     req.session.destroy(function (err) {
         if(err) res.json({error: ['api:1x7', err.message || 'Logout failed.']});
         else res.json({success: true});
