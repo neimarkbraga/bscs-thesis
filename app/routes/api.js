@@ -132,7 +132,7 @@ router.get('/user', function (req, res) {
     async.waterfall([
         //validate session
         function (callback) {
-            if(!res.locals.user) callback(['api:1x20?', 'You are not logged in.']);
+            if(!res.locals.user) callback(['api:1x20', 'You are not logged in.']);
             else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:1x21?', 'Unauthorized Access.']);
             else callback();
         },
@@ -191,7 +191,7 @@ router.get('/user', function (req, res) {
                 .then(function (users) {
                     callback(null, users);
                 }).catch(function (err) {
-                    callback(['api:1x22?', err.message || 'Error retrieving data']);
+                    callback(['api:1x22', err.message || 'Error retrieving data']);
                 });
         }
     ], function (err, users) {
@@ -238,44 +238,48 @@ router.put('/user/password', function (req, res) {
         else res.json({success: true});
     });
 });
+router.put('/user/password/reset/:username', function (req, res) {
+    async.waterfall([
+
+        //validate account
+        function (callback) {
+            if(!res.locals.user) callback(['api:1x31', 'You are not logged in.']);
+            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:1x32?', 'Unauthorized Access.']);
+            else callback();
+        },
+
+        //retrieve user
+        function (callback) {
+            db.models.User.findById(req.params.username)
+                .then(function (user) {
+                    if(!user) callback(['api:1x33', 'Username doesn\'t exist.']);
+                    else callback(null, user);
+                }).catch(function (err) {
+                    callback(['api:1x34', err.message || 'Cannot retrieve data.']);
+                });
+        },
+
+        //reset password
+        function (user, callback) {
+            user.password = user.bcryptPassword(user.username);
+            user.save()
+                .then(function () {
+                    callback();
+                }).catch(function (err) {
+                    callback(['api:1x35', err.message || 'Cannot reset password.']);
+                });
+        }
+
+    ], function (err) {
+        if(err) res.send({error: err});
+        else res.send({success: true});
+    });
+});
+
 
 
 
 //to be coded
-router.put('/user/reset-password/:username', function (req, res) {
-    async.waterfall([
-
-        //check fields
-        function (callback) {
-            if(!req.session.username) callback('Unauthorized Access.');
-            else if(!req.body.old_password) callback('old_password is required.');
-            else if(!req.body.new_password) callback('new_password is required.');
-            else if(req.body.new_password.length < 6) callback('new_password password must be at least 6 characters.');
-            else callback();
-        },
-
-        //validate account
-        function (callback) {
-            userPassport.validateByUsername(req.session.username, function (err, user) {
-                if(err) callback(err);
-                else if(!user.comparePassword(req.body.old_password)) callback ('Wrong old password.');
-                else callback(null, user);
-            });
-        },
-
-        //save password
-        function (user, callback) {
-            user.password = user.bcryptPassword(req.body.new_password);
-            promiseToCallback(user.save())(function (err, user) {
-                if(err) callback(err.message || 'Error updating password');
-                else callback();
-            });
-        }
-    ], function (err) {
-        if(err) res.send({success: false, message: err});
-        else res.send({success: true, message: 'Password updated.'});
-    });
-});
 router.delete('/user/delete/:username', function () {
 
 });
