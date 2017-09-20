@@ -70,6 +70,48 @@ router.get('/user/logout', function (req, res) {
         else res.json({success: true});
     });
 });
+router.put('/user/password', function (req, res) {
+    async.waterfall([
+
+        //check fields
+        function (callback) {
+            if(!res.locals.user) callback(['api:1x8', 'You are not logged in.']);
+            else if(!req.body.old_password) callback(['api:1x9', 'old_password is required.']);
+            else if(!req.body.new_password) callback(['api:1x10', 'new_password is required.']);
+            else if(req.body.new_password.length < 6) callback(['api:1x11', 'new_password password must be at least 6 characters.']);
+            else callback();
+        },
+
+        //get account
+        function (callback) {
+            db.models.User.findById(req.session.username)
+                .then(function (user) {
+                    if(!user) callback(['api:1x12', 'Cannot find user account.']);
+                    else if(!user.comparePassword(req.body.old_password)) callback (['api:1x13', 'Old password doesn\'t match.']);
+                    else callback(null, user);
+                }).catch(function (err) {
+                    callback(['api:1x14', err.message || 'Unable to retrieve data.']);
+                });
+        },
+
+        //save password
+        function (user, callback) {
+            user.password = user.bcryptPassword(req.body.new_password);
+            user.save()
+                .then(function () {
+                    callback();
+                }).catch(function (err) {
+                    callback(['api:1x15', err.message || 'Unable to save new password.']);
+                });
+        }
+    ], function (err) {
+        if(err) res.json({error: err});
+        else res.json({success: true});
+    });
+});
+
+
+
 
 router.post('/user/register', function (req, res) {
     async.waterfall([
