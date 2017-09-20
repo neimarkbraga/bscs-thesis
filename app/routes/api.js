@@ -71,7 +71,6 @@ router.get('/user/logout', function (req, res) {
     });
 });
 
-
 router.post('/user/register', function (req, res) {
     async.waterfall([
 
