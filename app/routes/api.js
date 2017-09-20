@@ -348,6 +348,81 @@ router.post('/district', function (req, res) {
         else res.send({success: true});
     });
 });
+router.put('/district/:id', function (req, res) {
+    async.waterfall([
+
+        //validate user and fields
+        function (callback) {
+            if(!res.locals.user) callback(['api:2x5', 'You are not logged in.']);
+            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:2x6', 'Unauthorized Access.']);
+            else if(!req.body.name) callback(['api:2x7', 'name is required.']);
+            else callback();
+        },
+
+        //get district
+        function (callback) {
+            db.models.District.findById(req.params.id)
+                .then(function (district) {
+                     if(!district) callback(['api:2x8', 'District ID doesn\'t exist.']);
+                     else callback(null, district);
+                }).catch(function (err) {
+                    callback(['api:2x9', err.message || 'Cannot retrieve data.']);
+                });
+        },
+
+        //update district
+        function (district, callback) {
+            district.name = req.body.name;
+            district.save()
+                .then(function () {
+                    callback();
+                }).catch(function (err) {
+                callback(['api:2x10', err.message || 'Error updating district name.']);
+            });
+        }
+
+    ], function (err) {
+        if(err) res.send({error: err});
+        else res.send({success: true});
+    });
+});
+router.delete('/district/:id', function (req, res) {
+    async.waterfall([
+
+        //validate user and fields
+        function (callback) {
+            if(!res.locals.user) callback(['api:2x11', 'You are not logged in.']);
+            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:2x12', 'Unauthorized Access.']);
+            else callback();
+        },
+
+        //get district
+        function (callback) {
+            db.models.District.findById(req.params.id)
+                .then(function (district) {
+                    if(!district) callback(['api:2x13', 'District ID doesn\'t exist.']);
+                    else callback(null, district);
+                }).catch(function (err) {
+                callback(['api:2x14', err.message || 'Cannot retrieve data.']);
+            });
+        },
+
+        //update district
+        function (district, callback) {
+            district.destroy()
+                .then(function () {
+                    callback();
+                }).catch(function (err) {
+                callback(['api:2x15', err.message || 'Cannot delete district.']);
+            });
+        }
+
+    ], function (err) {
+        if(err) res.send({error: err});
+        else res.send({success: true});
+    });
+});
+
 
 //===============================================
 //  2. Barangay
