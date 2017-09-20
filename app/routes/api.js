@@ -109,70 +109,57 @@ router.put('/user/password', function (req, res) {
         else res.json({success: true});
     });
 });
-
-
-
-
-router.post('/user/register', function (req, res) {
+router.post('/user', function (req, res) {
     async.waterfall([
 
         //check session & fields
         function (callback) {
-            if(!req.session.username) callback('Unauthorized Access.');
-            else if(!req.body.username) callback('username is required.');
-            else if(!req.body.type) callback('type is required.');
-            else if(!req.body.firstname) callback('firstname is required.');
-            else if(!req.body.middlename) callback('middlename is required.');
-            else if(!req.body.lastname) callback('lastname is required.');
-            else if((req.body.type == 'BRGY') && !req.body.barangay) callback('barangay is required.');
+            if(!res.locals.user || (res.locals.user.UserType.code != 'ADMIN')) callback(['api:1x16', 'Unauthorized Access.']);
+            else if(!req.body.username) callback(['api:1x17', 'username is required.']);
+            else if(!req.body.type) callback(['api:1x18', 'type is required.']);
+            else if(!req.body.firstname) callback(['api:1x19', 'firstname is required.']);
+            else if(!req.body.middlename) callback(['api:1x20', 'middlename is required.']);
+            else if(!req.body.lastname) callback(['api:1x21', 'lastname is required.']);
+            else if((req.body.type == 'BRGY') && !req.body.barangay) callback(['api:1x22', 'barangay is required.']);
             else callback();
-        },
-
-        //validate account
-        function (callback) {
-            userPassport.validateByUsername(req.session.username, function (err, user) {
-                if(err) callback(err);
-                else if(user.type != 'ADMIN') callback('You are unauthorized Access to execute this action.');
-                else callback();
-            });
         },
 
         //check if username exists
         function (callback) {
-            promiseToCallback(db.models.User.findOne({
-                where: {username: req.body.username}
-            }))(function (err, user) {
-                if(err) callback(err.message || 'Error connection with database.');
-                else if(user) callback('Username already exist');
-                else callback();
-            });
+            db.models.User.findById(req.body.username)
+                .then(function (user) {
+                    if(user) callback(['api:1x23', 'Username already exist']);
+                    else callback();
+                }).catch(function (err) {
+                    callback(['api:1x24', err.message || 'Cannot retrieve data.']);
+                });
         },
 
-
+        //save details
         function (callback) {
-            //save details
             var user = new db.models.User();
-             user.username = req.body.username;
-             user.password = req.body.username;
-             user.type = req.body.type;
-             user.firstname = req.body.firstname;
-             user.middlename = req.body.middlename;
-             user.lastname = req.body.lastname;
-             if(req.body.barangay) user.barangay = req.body.barangay;
-             promiseToCallback(user.save())(function (err, user) {
-                 if(err) callback(err.message || 'Error saving user details');
-                 else callback(null, user);
-             });
+            user.username = req.body.username;
+            user.password = req.body.username;
+            user.type = req.body.type;
+            user.firstname = req.body.firstname;
+            user.middlename = req.body.middlename;
+            user.lastname = req.body.lastname;
+            if(req.body.barangay) user.barangay = req.body.barangay;
+            user.save()
+                .then(function () {
+                    callback();
+                }).catch(function (err) {
+                    callback(['api:1x25', err.message || 'Error saving user details']);
+                });
         }
     ], function (err) {
-        if(err) res.json({error: [err]});
-        else res.send({success: true, message: 'User registered.'});
+        if(err) res.json({error: err});
+        else res.send({success: true});
     });
 });
-router.get('/user/logout', function (req, res) {
-    req.session.destroy();
-    res.json({success: true});
-});
+
+
+
 router.get('/user/types', function (req, res) {
     db.models.UserType.findAll({
         attributes: { exclude: ['createdAt', 'updatedAt']}
@@ -246,40 +233,6 @@ router.get('/user/list', function (req, res) {
         if(err) res.send({error: [err]});
         else res.send(data);
     })
-});
-router.put('/user/change-password', function (req, res) {
-    async.waterfall([
-
-        //check fields
-        function (callback) {
-            if(!req.session.username) callback('Unauthorized Access.');
-            else if(!req.body.old_password) callback('old_password is required.');
-            else if(!req.body.new_password) callback('new_password is required.');
-            else if(req.body.new_password.length < 6) callback('new_password password must be at least 6 characters.');
-            else callback();
-        },
-
-        //validate account
-        function (callback) {
-            userPassport.validateByUsername(req.session.username, function (err, user) {
-                if(err) callback(err);
-                else if(!user.comparePassword(req.body.old_password)) callback ('Wrong old password.');
-                else callback(null, user);
-            });
-        },
-
-        //save password
-        function (user, callback) {
-            user.password = user.bcryptPassword(req.body.new_password);
-            promiseToCallback(user.save())(function (err, user) {
-                if(err) callback(err.message || 'Error updating password');
-                else callback();
-            });
-        }
-    ], function (err) {
-        if(err) res.send({success: false, message: err});
-        else res.send({success: true, message: 'Password updated.'});
-    });
 });
 
 
