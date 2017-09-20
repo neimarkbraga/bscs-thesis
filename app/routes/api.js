@@ -540,6 +540,10 @@ router.get('/barangay', function (req, res) {
                                 attributes: { exclude: ['createdAt', 'updatedAt']}
                             }
                         ]
+                    },
+                    {
+                        model: db.models.BarangayLatestInfo,
+                        attributes: { exclude: ['id', 'barangay', 'createdAt', 'updatedAt']}
                     }
                 ]
             };

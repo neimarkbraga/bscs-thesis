@@ -4,6 +4,8 @@ var Sequelize       =   dbSequelize.Sequelize;
 var DataTypes       =   Sequelize.DataTypes;
 var District        =   require('./district');
 var BarangayPath    =   require('./barangayPath');
+var BarangayInfo    =   require('./barangayInfo');
+var BarangayLatestInfo    =   require('./barangayLatestInfo');
 
 var Barangay = sequelize.define('Barangay', {
     id: {field: 'ID', type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true, allowNull: false},
@@ -21,6 +23,10 @@ Barangay.belongsTo(District, {
 Barangay.hasMany(BarangayPath, {
     foreignKey: 'barangay'
 });
-
-
+Barangay.hasMany(BarangayInfo, {
+    foreignKey: 'barangay'
+});
+Barangay.hasOne(BarangayLatestInfo, {
+    foreignKey: 'barangay'
+});
 module.exports = Barangay;

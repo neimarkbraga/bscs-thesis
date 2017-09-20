@@ -4,7 +4,7 @@ var Sequelize       =   dbSequelize.Sequelize;
 var DataTypes       =   Sequelize.DataTypes;
 var Barangay        =   require('./barangay');
 
-var BarangayInfo = sequelize.define('BarangayInfo', {
+var BarangayLatestInfo = sequelize.define('BarangayLatestInfo', {
     id: {field: 'ID', type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true, allowNull: false},
     barangay: {field: 'BARANGAY', type: DataTypes.INTEGER, allowNull: false, references:{model: Barangay, key:'ID'}},
     men: {field: 'MEN', type: DataTypes.INTEGER, allowNull: false, defaultValue: 0},
@@ -24,6 +24,6 @@ var BarangayInfo = sequelize.define('BarangayInfo', {
     isFloodProne: {field: 'isFLOOD_PRONE', type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false}
 },{
     freezeTableName: true,
-    tableName: 'barangay_info'
+    tableName: 'v_latest_barangay_info'
 });
-module.exports = BarangayInfo;
+module.exports = BarangayLatestInfo;
