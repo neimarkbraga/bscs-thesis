@@ -24,54 +24,18 @@ var db                  =   require('../models');
 //  1. User
 //===============================================
 
-router.post('/user/login', function (req, res) {
-    async.waterfall([
-
-        //check fields
-        function (callback) {
-            if(!req.body.username) callback(['api:1x0', 'username is required.']);
-            else if(!req.body.password) callback(['api:1x1', 'password is required.']);
-            else callback();
-        },
-
-        //get data
-        function (callback) {
-            promiseToCallback(db.models.User.findOne({
-                where: {username: req.body.username}
-            }))(function (err, user) {
-                if(err) callback(['api:1x2', err.message || 'Cannot retrieve data.']);
-                else callback(null, user);
-            });
-        },
-
-        //check
-        function (user, callback) {
-            if(!user) callback(['api:1x3', 'Username does not exist.']);
-            else if(!user.enabled) callback(['api:1x4', 'Username was disabled.']);
-            else if(!user.comparePassword(req.body.password)) callback(['api:1x5', 'Wrong password.']);
-            else callback(null, user);
-        }
-
-    ], function (err, user) {
-        if(err) res.json({error: err});
-        else {
-            req.session.username = user.username;
-            res.json({success: true, userType: user.type});
-        }
-    });
-});
 router.post('/user', function (req, res) {
     async.waterfall([
 
         //check session & fields
         function (callback) {
-            if(!res.locals.user || (res.locals.user.UserType.code != 'ADMIN')) callback(['api:1x16', 'Unauthorized Access.']);
-            else if(!req.body.username) callback(['api:1x17', 'username is required.']);
-            else if(!req.body.type) callback(['api:1x18', 'type is required.']);
-            else if(!req.body.firstname) callback(['api:1x19', 'firstname is required.']);
-            else if(!req.body.middlename) callback(['api:1x20', 'middlename is required.']);
-            else if(!req.body.lastname) callback(['api:1x21', 'lastname is required.']);
-            else if((req.body.type == 'BRGY') && !req.body.barangay) callback(['api:1x22', 'barangay is required.']);
+            if(!res.locals.user || (res.locals.user.UserType.code != 'ADMIN')) callback(['api:1x1', 'Unauthorized Access.']);
+            else if(!req.body.username) callback(['api:1x2', 'username is required.']);
+            else if(!req.body.type) callback(['api:1x3', 'type is required.']);
+            else if(!req.body.firstname) callback(['api:1x4', 'firstname is required.']);
+            else if(!req.body.middlename) callback(['api:1x5', 'middlename is required.']);
+            else if(!req.body.lastname) callback(['api:1x6', 'lastname is required.']);
+            else if((req.body.type == 'BRGY') && !req.body.barangay) callback(['api:1x7', 'barangay is required.']);
             else callback();
         },
 
@@ -79,10 +43,10 @@ router.post('/user', function (req, res) {
         function (callback) {
             db.models.User.findById(req.body.username)
                 .then(function (user) {
-                    if(user) callback(['api:1x23', 'Username already exist']);
+                    if(user) callback(['api:1x8', 'Username already exist']);
                     else callback();
                 }).catch(function (err) {
-                callback(['api:1x24', err.message || 'Cannot retrieve data.']);
+                callback(['api:1x9', err.message || 'Cannot retrieve data.']);
             });
         },
 
@@ -100,7 +64,7 @@ router.post('/user', function (req, res) {
                 .then(function () {
                     callback();
                 }).catch(function (err) {
-                callback(['api:1x25', err.message || 'Error saving user details']);
+                callback(['api:1x10', err.message || 'Error saving user details']);
             });
         }
     ], function (err) {
@@ -108,13 +72,49 @@ router.post('/user', function (req, res) {
         else res.send({success: true});
     });
 });
+router.post('/user/login', function (req, res) {
+    async.waterfall([
+
+        //check fields
+        function (callback) {
+            if(!req.body.username) callback(['api:1x11', 'username is required.']);
+            else if(!req.body.password) callback(['api:1x12', 'password is required.']);
+            else callback();
+        },
+
+        //get data
+        function (callback) {
+            promiseToCallback(db.models.User.findOne({
+                where: {username: req.body.username}
+            }))(function (err, user) {
+                if(err) callback(['api:1x13', err.message || 'Cannot retrieve data.']);
+                else callback(null, user);
+            });
+        },
+
+        //check
+        function (user, callback) {
+            if(!user) callback(['api:1x14', 'Username does not exist.']);
+            else if(!user.enabled) callback(['api:1x15', 'Username was disabled.']);
+            else if(!user.comparePassword(req.body.password)) callback(['api:1x16', 'Wrong password.']);
+            else callback(null, user);
+        }
+
+    ], function (err, user) {
+        if(err) res.json({error: err});
+        else {
+            req.session.username = user.username;
+            res.json({success: true, userType: user.type});
+        }
+    });
+});
 router.get('/user/me', function (req, res) {
-    if(!res.locals.user) res.json({error: ['api:1x6', 'Not logged in.']});
+    if(!res.locals.user) res.json({error: ['api:1x17', 'Not logged in.']});
     else res.json(res.locals.user);
 });
 router.get('/user/logout', function (req, res) {
     req.session.destroy(function (err) {
-        if(err) res.json({error: ['api:1x7', err.message || 'Logout failed.']});
+        if(err) res.json({error: ['api:1x18', err.message || 'Logout failed.']});
         else res.json({success: true});
     });
 });
@@ -124,7 +124,7 @@ router.get('/user/types', function (req, res) {
     }).then(function (userTypes) {
         res.json(userTypes);
     }).catch(function () {
-        res.json({error: ['api:1x26', 'Cannot retrieve data.']});
+        res.json({error: ['api:1x19', 'Cannot retrieve data.']});
     });
 });
 router.get('/user', function (req, res) {
@@ -132,8 +132,8 @@ router.get('/user', function (req, res) {
     async.waterfall([
         //validate session
         function (callback) {
-            if(!res.locals.user) callback(['api:1x16?', 'You are not logged in.']);
-            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:1x16?', 'Unauthorized Access.']);
+            if(!res.locals.user) callback(['api:1x20?', 'You are not logged in.']);
+            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:1x21?', 'Unauthorized Access.']);
             else callback();
         },
 
@@ -191,7 +191,7 @@ router.get('/user', function (req, res) {
                 .then(function (users) {
                     callback(null, users);
                 }).catch(function (err) {
-                    callback(['api:1x16?', err.message || 'Error retrieving data']);
+                    callback(['api:1x22?', err.message || 'Error retrieving data']);
                 });
         }
     ], function (err, users) {
@@ -204,10 +204,10 @@ router.put('/user/password', function (req, res) {
 
         //check fields
         function (callback) {
-            if(!res.locals.user) callback(['api:1x8', 'You are not logged in.']);
-            else if(!req.body.old_password) callback(['api:1x9', 'old_password is required.']);
-            else if(!req.body.new_password) callback(['api:1x10', 'new_password is required.']);
-            else if(req.body.new_password.length < 6) callback(['api:1x11', 'new_password password must be at least 6 characters.']);
+            if(!res.locals.user) callback(['api:1x23', 'You are not logged in.']);
+            else if(!req.body.old_password) callback(['api:1x24', 'old_password is required.']);
+            else if(!req.body.new_password) callback(['api:1x25', 'new_password is required.']);
+            else if(req.body.new_password.length < 6) callback(['api:1x26', 'new_password password must be at least 6 characters.']);
             else callback();
         },
 
@@ -215,11 +215,11 @@ router.put('/user/password', function (req, res) {
         function (callback) {
             db.models.User.findById(req.session.username)
                 .then(function (user) {
-                    if(!user) callback(['api:1x12', 'Cannot find user account.']);
-                    else if(!user.comparePassword(req.body.old_password)) callback (['api:1x13', 'Old password doesn\'t match.']);
+                    if(!user) callback(['api:1x27', 'Cannot find user account.']);
+                    else if(!user.comparePassword(req.body.old_password)) callback (['api:1x28', 'Old password doesn\'t match.']);
                     else callback(null, user);
                 }).catch(function (err) {
-                callback(['api:1x14', err.message || 'Unable to retrieve data.']);
+                callback(['api:1x29', err.message || 'Unable to retrieve data.']);
             });
         },
 
@@ -230,7 +230,7 @@ router.put('/user/password', function (req, res) {
                 .then(function () {
                     callback();
                 }).catch(function (err) {
-                callback(['api:1x15', err.message || 'Unable to save new password.']);
+                callback(['api:1x30', err.message || 'Unable to save new password.']);
             });
         }
     ], function (err) {
