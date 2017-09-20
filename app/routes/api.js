@@ -2,7 +2,6 @@ var promiseToCallback   =   require('promise-to-callback');
 var async               =   require('async');
 var express             =   require('express');
 var router              =   express.Router();
-var userPassport        =   require('../modules/userPassport');
 var db                  =   require('../models');
 
 //===============================================
@@ -61,16 +60,17 @@ router.post('/user/login', function (req, res) {
         }
     });
 });
-router.use('/user/me', function (req, res) {
+router.get('/user/me', function (req, res) {
     if(!res.locals.user) res.json({error: ['api:1x6', 'Not logged in.']});
     else res.json(res.locals.user);
 });
-router.get('/user/logout', function (req, res) {
+router.use('/user/logout', function (req, res) {
     req.session.destroy(function (err) {
         if(err) res.json({error: ['api:1x7', err.message || 'Logout failed.']});
         else res.json({success: true});
     });
 });
+
 
 router.post('/user/register', function (req, res) {
     async.waterfall([
@@ -126,24 +126,6 @@ router.post('/user/register', function (req, res) {
     ], function (err) {
         if(err) res.json({error: [err]});
         else res.send({success: true, message: 'User registered.'});
-    });
-});
-router.get('/user/me', function (req, res) {
-    db.models.User.findAll({
-        attributes: { exclude: ['password', 'enabled', 'type', 'barangay', 'createdAt', 'updatedAt']},
-        where: {
-            username: req.session.username,
-            enabled: true
-        },
-        include: [
-            { model: db.models.UserType, attributes: { exclude: ['createdAt', 'updatedAt']} },
-            { model: db.models.Barangay, attributes: { exclude: ['createdAt', 'updatedAt']} }
-        ]
-    }).then(function (users) {
-        if(users.length > 0) res.send(users[0]);
-        else res.send({error: ['You are not logged in.']});
-    }).catch(function (error) {
-        res.send({error: ['An unknown error occurred']});
     });
 });
 router.get('/user/logout', function (req, res) {
@@ -258,6 +240,7 @@ router.put('/user/change-password', function (req, res) {
         else res.send({success: true, message: 'Password updated.'});
     });
 });
+
 
 //to be coded
 router.put('/user/reset-password/:username', function (req, res) {

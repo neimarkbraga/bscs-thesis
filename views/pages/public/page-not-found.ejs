@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <% include ../../partials/global-meta.ejs %>
+        <title><%= appSettings.appName %></title>
+        <% include ../../partials/global-link.ejs %>
+        <% include ../../partials/global-script.ejs %>
+    </head>
+    <body class="bg-dark">
+        <header>
+            <% include ../../partials/global-navbar.ejs %>
+        </header>
+        <main class="d-flex w-100 h-100 justify-content-center align-items-center">
+            <div class="text-center">
+                <h1 class="text-white">Page Not Found</h1>
+                <p class="text-secondary">The link you followed may be broken, or the page may have been removed.</p>
+            </div>
+        </main>
+        <footer>
+            <% include ../../partials/global-footer.ejs %>
+        </footer>
+    </body>
+</html>

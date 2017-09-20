@@ -8,7 +8,8 @@ router.get('/', function (req, res) {
 });
 
 router.get('/login', function (req, res) {
-    res.render('pages/public/login');
+    if(res.locals.user) res.redirect('/' + res.locals.user.UserType.code.toLowerCase() + '/dashboard');
+    else res.render('pages/public/login');
 });
 
 module.exports = router;
