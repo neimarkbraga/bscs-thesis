@@ -14,7 +14,8 @@ var db                  =   require('../models');
 //===============================================
 /*
     1. User
-    2. Place
+    2. District
+    3. Barangay
 */
 
 
@@ -245,7 +246,7 @@ router.put('/user/password/reset/:username', function (req, res) {
         //validate account
         function (callback) {
             if(!res.locals.user) callback(['api:1x31', 'You are not logged in.']);
-            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:1x32?', 'Unauthorized Access.']);
+            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:1x32', 'Unauthorized Access.']);
             else callback();
         },
 
@@ -282,7 +283,7 @@ router.delete('/user/:username', function (req, res) {
         //validate account
         function (callback) {
             if(!res.locals.user) callback(['api:1x36', 'You are not logged in.']);
-            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:1x37?', 'Unauthorized Access.']);
+            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:1x37', 'Unauthorized Access.']);
             else callback();
         },
 
@@ -314,9 +315,42 @@ router.delete('/user/:username', function (req, res) {
     });
 });
 
+//===============================================
+//  2. District
+//===============================================
+
+router.post('/district', function (req, res) {
+    async.waterfall([
+
+        //validate user and fields
+        function (callback) {
+            if(!res.locals.user) callback(['api:2x1', 'You are not logged in.']);
+            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:2x2', 'Unauthorized Access.']);
+            else if(!req.body.name) callback(['api:2x3', 'name is required.']);
+            else callback();
+        },
+
+        //create district
+        function (callback) {
+            var district = new db.models.District();
+            district.name = req.body.name;
+            district.city = 1;
+            district.save()
+                .then(function () {
+                    callback();
+                }).catch(function (err) {
+                    callback(['api:2x4', err.message || 'Error saving district name.']);
+                });
+        }
+
+    ], function (err) {
+        if(err) res.send({error: err});
+        else res.send({success: true});
+    });
+});
 
 //===============================================
-//  2. Place
+//  2. Barangay
 //===============================================
 
 
@@ -389,6 +423,7 @@ router.post('/places/new', function (req, res) {
         else res.send({success: true, message: 'Place added.'});
     });
 });
+
 router.post('/places/new-district', function (req, res) {
     async.waterfall([
         function (callback) {
