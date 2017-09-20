@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <% include ../../partials/global-meta.ejs %>
+        <title><%= appSettings.appName %></title>
+        <% include ../../partials/global-link.ejs %>
+        <% include ../../partials/global-script.ejs %>
+    </head>
+    <body ng-app="app" ng-controller="loginCtrl as login">
+        <header>
+            <% include ../../partials/global-navbar.ejs %>
+            <div class="container pt-4">
+                <h4>Login Page</h4>
+                <hr />
+            </div>
+        </header>
+        <main>
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-12 col-md-6">
+
+                        <!--error message-->
+                        <div ng-if="login.errorMessage" class="alert alert-danger" role="alert">
+                            {{login.errorMessage}}
+                        </div>
+
+                        <!--preloader-->
+                        <div ng-show="login.formLoading">
+                            <div class="pre-loader m-auto"></div>
+                        </div>
+
+                        <!--form-->
+                        <form ng-submit="login.submit()" ng-hide="login.formLoading">
+                            <fieldset ng-disabled="login.formDisabled">
+                                <div class="form-group">
+                                    <label>Username</label>
+                                    <input type="text" ng-model="login.form.username" required="required" class="form-control" placeholder="Username">
+                                </div>
+                                <div class="form-group">
+                                    <label>Password</label>
+                                    <input type="password" ng-model="login.form.password" required="required" class="form-control" placeholder="Password">
+                                </div>
+                                <div class="text-right">
+                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                </div>
+                            </fieldset>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <footer>
+            <% include ../../partials/global-footer.ejs %>
+        </footer>
+        <script>
+            angular.module('app', ['serverService'])
+                .controller('loginCtrl', function ($window, serverSv) {
+                    var login = this;
+
+                    //properties
+                    login.form = {
+                        username: '',
+                        password: ''
+                    };
+                    login.errorMessage = undefined;
+                    login.formDisabled = false;
+                    login.formLoading = false;
+
+                    //methods
+                    login.submit = function () {
+                        login.errorMessage = undefined;
+                        login.formDisabled = true;
+                        login.formLoading = true;
+                        serverSv.auth.login(login.form)
+                            .then(function (response) {
+                                var data = response.data;
+                                if(data.error) {
+                                    login.errorMessage = data.error[1];
+                                    ErrorLog.push(data.error);
+                                } else {
+                                    new Dialog.preloader('Redirecting...');
+                                    $window.location = '/' + data.userType.toLowerCase() + '/dashboard';
+                                }
+                            }).catch(function (error) {
+                                login.errorMessage = 'An unknown error occurred.';
+                                ErrorLog.push(error);
+                            }).finally(function () {
+                                login.formDisabled = false;
+                                login.formLoading = false;
+                            });
+                    };
+                });
+        </script>
+    </body>
+</html>

@@ -52,10 +52,44 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(session(sessionOption));
 app.use(passport.initialize());
 app.use(passport.session());
-
 app.use(function (req, res, next) {
     res.locals.appSettings = appSettings;
     next();
+});
+app.use(function (req, res, next) {
+    db.models.User.findAll({
+        attributes: { exclude: ['password', 'enabled', 'type', 'barangay', 'createdAt', 'updatedAt']},
+        where: {
+            username: req.session.username,
+            enabled: true
+        },
+        include: [
+            { model: db.models.UserType, attributes: { exclude: ['createdAt', 'updatedAt']} },
+            {
+                model: db.models.Barangay,
+                attributes: { exclude: ['district', 'createdAt', 'updatedAt']},
+                include: [
+                    {
+                        model: db.models.District,
+                        attributes: { exclude: ['city', 'createdAt', 'updatedAt']},
+                        include: [
+                            {
+                                model: db.models.City,
+                                attributes: { exclude: ['createdAt', 'updatedAt']}
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }).then(function (users) {
+        if(users.length > 0) res.locals.user = users[0];
+        else res.locals.user = undefined;
+    }).catch(function () {
+        res.locals.user = undefined;
+    }).finally(function () {
+        next();
+    });
 });
 
 //routes

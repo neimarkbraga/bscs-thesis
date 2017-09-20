@@ -25,6 +25,53 @@ var db                  =   require('../models');
 //  1. User
 //===============================================
 
+router.post('/user/login', function (req, res) {
+    async.waterfall([
+
+        //check fields
+        function (callback) {
+            if(!req.body.username) callback(['api:1x0', 'username is required.']);
+            else if(!req.body.password) callback(['api:1x1', 'password is required.']);
+            else callback();
+        },
+
+        //get data
+        function (callback) {
+            promiseToCallback(db.models.User.findOne({
+                where: {username: req.body.username}
+            }))(function (err, user) {
+                if(err) callback(['api:1x2', err.message || 'Cannot retrieve data.']);
+                else callback(null, user);
+            });
+        },
+
+        //check
+        function (user, callback) {
+            if(!user) callback(['api:1x3', 'Username does not exist.']);
+            else if(!user.enabled) callback(['api:1x4', 'Username was disabled.']);
+            else if(!user.comparePassword(req.body.password)) callback(['api:1x5', 'Wrong password.']);
+            else callback(null, user);
+        }
+
+    ], function (err, user) {
+        if(err) res.json({error: err});
+        else {
+            req.session.username = user.username;
+            res.json({success: true, userType: user.type});
+        }
+    });
+});
+router.use('/user/me', function (req, res) {
+    if(!res.locals.user) res.json({error: ['api:1x6', 'Not logged in.']});
+    else res.json(res.locals.user);
+});
+router.get('/user/logout', function (req, res) {
+    req.session.destroy(function (err) {
+        if(err) res.json({error: ['api:1x7', err.message || 'Logout failed.']});
+        else res.json({success: true});
+    });
+});
+
 router.post('/user/register', function (req, res) {
     async.waterfall([
 
@@ -79,47 +126,6 @@ router.post('/user/register', function (req, res) {
     ], function (err) {
         if(err) res.json({error: [err]});
         else res.send({success: true, message: 'User registered.'});
-    });
-});
-router.post('/user/authenticate', function (req, res) {
-    async.waterfall([
-        
-        //check fields
-        function (callback) {
-            if(!req.body.username) callback('username is required.');
-            else if(!req.body.password) callback('password is required.');
-            else callback();
-        },
-        
-        //get data
-        function (callback) {
-            promiseToCallback(db.models.User.findOne({
-                where: {username: req.body.username}
-            }))(function (err, user) {
-                if(err) callback(err.message || 'Error retrieving data.');
-                else callback(null, user);
-            });
-        },
-
-        //check
-        function (user, callback) {
-            if(!user) callback('Username does not exist.');
-            else if(!user.enabled) callback('Username was disabled.');
-            else if(user.comparePassword(req.body.password)) callback(null, user);
-            else callback('Wrong password.');
-        }
-        
-    ], function (err, result) {
-        if(err) res.send({success: false, message: err});
-        else {
-            var user = result.get({raw: true});
-            delete user.password;
-            delete user.enabled;
-            delete user.createdAt;
-            delete user.updatedAt;
-            req.session.username = user.username;
-            res.send({success: true, message: 'authenticated', user: user});
-        }
     });
 });
 router.get('/user/me', function (req, res) {
