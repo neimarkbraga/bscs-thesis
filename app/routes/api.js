@@ -467,54 +467,34 @@ router.delete('/district/:id', function (req, res) {
 
 
 //===============================================
-//  2. Barangay
+//  3. Barangay
 //===============================================
 
-
-router.post('/places/new', function (req, res) {
+router.post('/barangay', function (req, res) {
     async.waterfall([
+
         function (callback) {
-            if(!req.session.username) callback('Unauthorized Access.');
-            else if(!req.body.barangay_name) callback('barangay_name is required.');
-            else if(!req.body.district_id) callback('district_id is required.');
-            else if(!req.body.path) callback('path is required.');
-            else if(req.body.is_coastal == undefined) callback('is_coastal is required.');
-            else if(!req.body.district_name && (req.body.district_id < 0)) callback('district_name is required.');
+            if(!res.locals.user) callback(['api:3x1', 'You are not logged in.']);
+            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:3x2', 'Unauthorized Access.']);
+            else if(!req.body.name) callback(['api:3x3', 'name is required.']);
+            else if(!req.body.district) callback(['api:3x4', 'district is required.']);
+            else if(!req.body.path) callback(['api:3x5', 'path is required.']);
+            else if(req.body.coastal == undefined) callback(['api:3x6', 'coastal is required.']);
             else callback();
         },
 
-        //validate account
-        function (callback) {
-            userPassport.validateByUsername(req.session.username, function (err, user) {
-                if(err) callback(err);
-                else if(user.type != 'ADMIN') callback('You are unauthorized Access to execute this action.');
-                else callback();
-            });
-        },
-
-        //create district
-        function (callback) {
-            if(req.body.district_id < 0){
-                var district = new db.models.District();
-                district.name = req.body.district_name;
-                district.city = 1;
-                promiseToCallback(district.save())(function (err, district) {
-                    if(err) callback(err.message || 'Error saving district name.');
-                    else callback(null, district);
-                });
-            } else callback(null, null);
-        },
-
         //create barangay
-        function (district, callback) {
+        function (callback) {
             var barangay = new db.models.Barangay();
-            barangay.name = req.body.barangay_name;
-            barangay.district = (district)? district.id:req.body.district_id;
-            barangay.isCoastal = req.body.is_coastal;
-            promiseToCallback(barangay.save())(function (err, barangay) {
-                if(err) callback(err.message || 'Error saving barangay.');
-                else callback(null, barangay);
-            });
+            barangay.name = req.body.name;
+            barangay.district = req.body.district;
+            barangay.isCoastal = req.body.coastal;
+            barangay.save()
+                .then(function (barangay) {
+                    callback(null, barangay);
+                }).catch(function (err) {
+                    callback(['api:3x7', err.message || 'Error saving barangay.']);
+                });
         },
 
         //save path
@@ -525,55 +505,85 @@ router.post('/places/new', function (req, res) {
                     barangayPath.barangay = barangay.id;
                     barangayPath.lat = req.body.path[index].lat;
                     barangayPath.lng = req.body.path[index].lng;
-                    promiseToCallback(barangayPath.save())(function (err) {
-                        if(err) callback(err.message || 'Error saving barangay path.');
-                        else if((index+1) < req.body.path.length) saveLatLng((index+1));
-                        else callback(null, barangay);
-                    });
+                    barangayPath.save()
+                        .then(function () {
+                            var nextIndex = index + 1;
+                            if(nextIndex < req.body.path.length) saveLatLng(nextIndex);
+                            else callback(null, barangay);
+                        }).catch(function (err) {
+                            callback(['api:3x8', err.message || 'Error saving barangay path.']);
+                        });
                 };
                 saveLatLng(0);
             } else callback(null, barangay);
         }
 
     ], function (err) {
-        if(err) res.send({success: false, message: err});
-        else res.send({success: true, message: 'Place added.'});
+        if(err) res.send({error: err});
+        else res.send({success: true});
     });
 });
-
-router.post('/places/new-district', function (req, res) {
+router.get('/barangay', function (req, res) {
     async.waterfall([
-        function (callback) {
-            if(!req.session.username) callback('Unauthorized Access.');
-            else if(!req.body.district_name) callback('district_name is required.');
-            else callback();
-        },
 
-        //validate account
+        //retrieve list
         function (callback) {
-            userPassport.validateByUsername(req.session.username, function (err, user) {
-                if(err) callback(err);
-                else if(user.type != 'ADMIN') callback('You are unauthorized Access to execute this action.');
-                else callback();
+            var query = {
+                attributes: { exclude: ['createdAt', 'updatedAt']},
+                include: [
+                    {
+                        model: db.models.District,
+                        attributes: { exclude: ['city', 'createdAt', 'updatedAt']},
+                        include: [
+                            {
+                                model: db.models.City,
+                                attributes: { exclude: ['createdAt', 'updatedAt']}
+                            }
+                        ]
+                    }
+                ]
+            };
+            var path = req.query.path;
+            var keyword = req.query.keyword;
+            var page = req.query.page;
+            var count = req.query.count || 10;
+
+            //path
+            if(path) query.include.push({
+                model: db.models.BarangayPath,
+                attributes: { exclude: ['id', 'barangay', 'createdAt', 'updatedAt']}
             });
-        },
 
-        //create district
-        function (callback) {
-            var district = new db.models.District();
-            district.name = req.body.district_name;
-            district.city = 1;
-            promiseToCallback(district.save())(function (err, district) {
-                if(err) callback(err.message || 'Error saving district name.');
-                else callback(null, district);
+            //search keyword
+            if(keyword) {
+                keyword = '%' + keyword.replace(/ /g, '%') + '%';
+                query.where = {name: {$like: keyword}};
+            }
+
+            //page
+            if(page){
+                page = parseInt(page);
+                count = parseInt(count);
+                query.offset = (page - 1) * count;
+                query.limit = count;
+            }
+
+
+            //query
+            db.models.Barangay.findAll(query)
+                .then(function (barangays) {
+                    callback(null, barangays);
+                }).catch(function (err) {
+                callback(['api:3x9', err.message || 'Error retrieving data']);
             });
         }
-
-    ], function (err) {
-        if(err) res.send({success: false, message: err});
-        else res.send({success: true, message: 'District name added.'});
+    ], function (err, barangays) {
+        if(err) res.send({error: err});
+        else res.send(barangays);
     });
 });
+
+
 router.get('/places/names-with-info', function (req, res) {
     var query = 'SELECT * ' +
         'FROM v_place_names ' +
@@ -618,7 +628,6 @@ router.get('/places/barangays', function (req, res) {
     }).then(function (barangays) {
         res.json(barangays);
     }).catch(function (error) {
-        console.log(error);
         res.json({error: ['Cannot retrieve barangays']});
     });
 });
@@ -723,45 +732,6 @@ router.put('/places/update/:id', function (req, res) {
     ], function (err) {
         if(err) res.send({success: false, message: err});
         else res.send({success: true, message: 'Place added.'});
-    });
-});
-router.put('/places/update-district/:id', function (req, res) {
-    async.waterfall([
-        function (callback) {
-            if(!req.session.username) callback('Unauthorized Access.');
-            else if(!req.body.district_name) callback('district_name is required.');
-            else callback();
-        },
-
-        //validate account
-        function (callback) {
-            userPassport.validateByUsername(req.session.username, function (err, user) {
-                if(err) callback(err);
-                else if(user.type != 'ADMIN') callback('You are unauthorized Access to execute this action.');
-                else callback();
-            });
-        },
-
-        //get district
-        function (callback) {
-            promiseToCallback(db.models.District.findById(req.params.id))(function (err, district) {
-                if(err) callback(err.message || 'Error retrieving');
-                else if (!district) callback('District doesn\'t exist');
-                else callback(null, district);
-            });
-        },
-
-        //save district
-        function (district, callback) {
-            district.name = req.body.district_name;
-            promiseToCallback(district.save())(function (err, district) {
-                if(err) callback(err.message || 'Error saving district name.');
-                else callback(null, district);
-            });
-        }
-    ], function (err) {
-        if(err) res.send({success: false, message: err});
-        else res.send({success: true, message: 'District name updated.'});
     });
 });
 router.delete('/places/delete/:id', function (req, res) {
