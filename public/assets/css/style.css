@@ -1,9 +1,11 @@
-html, body {
-    width: 100%;
-    height: 100%;
+body {
+    display: flex;
+    min-height: 100vh;
+    flex-direction: column;
 }
+
 main {
-    flex: 1;
+    flex: 1 0 auto;
 }
 button:hover {
     cursor: pointer;
@@ -12,7 +14,6 @@ button:hover {
     width: 70px;
     margin: 0 10px 0 0;
 }
-
 .pre-loader {
     border: 5px solid lightgray;
     border-top: 5px solid darkgray;
@@ -21,7 +22,6 @@ button:hover {
     height: 50px;
     animation: spin 2s linear infinite;
 }
-
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }

@@ -1,0 +1,36 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+        <a class="navbar-brand" href="#/">
+            <img src="assets/img/logo/logo-100px.png" width="50" height="50" alt="logo">
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item {{(item.items)? 'dropdown':''}}" ng-repeat="item in main.navItems track by $index">
+                    <a ng-if="item.path" href="#{{item.path}}" class="nav-link">{{item.name}}</a>
+                    <a ng-if="item.items" href="" class="nav-link dropdown-toggle" id="navbarDropdownMenuLink_{{$index}}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        {{item.name}}
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink_{{$index}}">
+                        <a ng-repeat="dropdown_item in item.items track by $index" class="dropdown-item" href="#{{dropdown_item.path}}">{{dropdown_item.name}}</a>
+                    </div>
+                </li>
+                <li class="nav-item text-center" ng-if="!main.user">
+                    <button  type="button" data-toggle="modal" data-target="#loginModal" class="btn btn-outline-primary">Login</button>
+                </li>
+                <li class="nav-item dropdown" ng-if="main.user">
+                    <a href="" class="nav-link dropdown-toggle" id="navbarDropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        {{main.user.firstname[0].toUpperCase() + main.user.middlename[0].toUpperCase() + ' ' + main.user.lastname}}
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                        <a class="dropdown-item" href="#/{{main.user.UserType.code}}/dashboard">Dashboard</a>
+                        <a class="dropdown-item" href="#/settings">Settings</a>
+                        <button type="button" ng-click="main.logout();" class="dropdown-item">Logout</button>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

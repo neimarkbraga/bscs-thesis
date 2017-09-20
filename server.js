@@ -60,7 +60,7 @@ app.use(function (req, res, next) {
 
 //routes
 app.use('/api', require('./app/routes/api'));
-app.use('/', require('./app/routes/pages'));
+app.use('/', require('./app/routes/public'));
 
 //error handler
 app.use(function (err, req, res, next) {
