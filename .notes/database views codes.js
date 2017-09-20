@@ -23,7 +23,7 @@ FROM        barangay_info JOIN v_lastest_barangay_info_dates
  VIEW:       v_place_names
  CODE:
 
-SELECT     city.ID AS CITY_ID,
+SELECT      city.ID AS CITY_ID,
             district.ID AS DISTRICT_ID,
             barangay.ID AS BARANGAY_ID,
             city.NAME AS CITY_NAME,

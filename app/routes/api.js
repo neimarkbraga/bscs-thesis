@@ -588,61 +588,9 @@ router.get('/barangay', function (req, res) {
 });
 
 
-router.get('/places/names-with-info', function (req, res) {
-    var query = 'SELECT * ' +
-        'FROM v_place_names ' +
-        'LEFT JOIN v_latest_barangay_info ' +
-        'ON v_place_names.BARANGAY_ID = v_latest_barangay_info.BARANGAY';
-    var limit = undefined;
-    var keyword = undefined;
-    if(req.query.p){
-        var count = 10;
-        var page = parseInt(req.query.p) - 1;
-        limit = ' LIMIT ' + (count * page) + ', ' + count;
-    }
-    if(req.query.q) {
-        var value = req.query.q.replace(/ /g, '%');
-        keyword = ' WHERE v_place_names.DISTRICT_NAME LIKE "%' + value + '%"' +
-            'OR v_place_names.CITY_NAME LIKE "%' + value + '%"' +
-            'OR v_place_names.BARANGAY_NAME LIKE "%' + value + '%"';
-    }
-    if(keyword) query += keyword;
-    if(limit) query += limit;
-    db.sequelize.query(query).then(function (result) {
-        res.send({success: true, data: result[0]});
-    }).catch(function (err) {
-        res.send({success: false, message: err.message || 'Cannot retrieve data from database'});
-    });
-});
-router.get('/places/barangays', function (req, res) {
-    db.models.Barangay.findAll({
-        attributes: { exclude: ['createdAt', 'updatedAt', 'district']},
-        include: [
-            {
-                model: db.models.District,
-                attributes: { exclude: ['createdAt', 'updatedAt', 'city']},
-                include: [
-                    {
-                        model: db.models.City,
-                        attributes: { exclude: ['createdAt', 'updatedAt']}
-                    }
-                ]
-            }
-        ]
-    }).then(function (barangays) {
-        res.json(barangays);
-    }).catch(function (error) {
-        res.json({error: ['Cannot retrieve barangays']});
-    });
-});
-router.get('/places/districts', function (req, res) {
-    db.models.District.findAll()
-        .then(function (result) {
-            res.json({success: true, data: result});
-        }).catch(function (err) {
-        res.json({success: false, message: err.message || 'Unable to retrieve data.'});
-    })
-});
+
+
+
 router.get('/places/path/:id', function (req, res) {
     db.models.BarangayPath.findAll({
         where: {barangay: req.params.id}
