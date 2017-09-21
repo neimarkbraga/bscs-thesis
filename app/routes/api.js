@@ -594,7 +594,6 @@ router.put('/barangay/:id', function (req, res) {
             else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:3x11', 'Unauthorized Access.']);
             else if(!req.body.name) callback(['api:3x12', 'name is required.']);
             else if(!req.body.district) callback(['api:3x13', 'district is required.']);
-            //else if(!req.body.path) callback(['api:3x5', 'path is required.']);
             else if(req.body.coastal == undefined) callback(['api:3x14', 'coastal is required.']);
             else callback();
         },
@@ -605,8 +604,8 @@ router.put('/barangay/:id', function (req, res) {
                 .then(function (barangay) {
                     if(!barangay) callback(['api:3x15', 'Barangay ID doesn\'t exist.']);
                     else callback(null, barangay);
-                }).catch(function () {
-                    callback(['api:3x16', 'Cannot retrieve data.']);
+                }).catch(function (err) {
+                    callback(['api:3x16', err.message || 'Cannot retrieve data.']);
                 });
         },
 
@@ -631,7 +630,7 @@ router.put('/barangay/:id', function (req, res) {
                     where: {barangay: barangay.id}
                 }).then(function () {
                     callback(null, barangay);
-                }).catch(function () {
+                }).catch(function (err) {
                     callback(['api:3x18', err.message || 'Error updating path.']);
                 });
             } else callback(null, barangay);
@@ -663,182 +662,50 @@ router.put('/barangay/:id', function (req, res) {
         else res.send({success: true});
     });
 });
-
-
-
-
-router.get('/places/path/:id', function (req, res) {
-    db.models.BarangayPath.findAll({
-        where: {barangay: req.params.id}
-    })
-        .then(function (result) {
-            res.json({success: true, data: result});
-        }).catch(function (err) {
-        res.json({success: false, message: err.message || 'Unable to retrieve data.'});
-    })
-});
-router.put('/places/update/:id', function (req, res) {
+router.delete('/barangay/:id', function (req, res) {
     async.waterfall([
+
         function (callback) {
-            if(!req.session.username) callback('Unauthorized Access.');
-            else if(!(req.body.barangay_name || req.body.district_id || req.body.path || (req.body.is_coastal != undefined))) callback('barangay_name or district_id or path or is_coastal are required.');
-            else if(req.body.district_id && !req.body.district_name && (req.body.district_id < 0)) callback('district_name is required.');
+            if(!res.locals.user) callback(['api:3x20', 'You are not logged in.']);
+            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:3x21', 'Unauthorized Access.']);
             else callback();
         },
 
-        //validate account
+        //get model
         function (callback) {
-            userPassport.validateByUsername(req.session.username, function (err, user) {
-                if(err) callback(err);
-                else if(user.type != 'ADMIN') callback('You are unauthorized Access to execute this action.');
-                else callback();
-            });
-        },
-
-        //create district
-        function (callback) {
-            if(req.body.district_id && (req.body.district_id < 0)){
-                var district = new db.models.District();
-                district.name = req.body.district_name;
-                district.city = 1;
-                promiseToCallback(district.save())(function (err, district) {
-                    if(err) callback(err.message || 'Error saving district name.');
-                    else callback(null, district);
-                });
-            } else callback(null, null);
-        },
-
-        //retrieve barangay
-        function (district, callback) {
-            promiseToCallback(db.models.Barangay.findById(req.params.id))(function (err, barangay) {
-                if(err) callback(err.message || 'Error retrieving data.');
-                else if(!barangay) callback('ID doesn\'t exist.');
-                else callback(null, district, barangay);
-            });
-        },
-
-        //update barangay
-        function (district, barangay, callback) {
-            barangay.name = req.body.barangay_name || barangay.name;
-            barangay.district = (district)? district.id:(req.body.district_id || barangay.district);
-            barangay.isCoastal = (req.body.is_coastal == undefined)? barangay.isCoastal:req.body.is_coastal;
-            promiseToCallback(barangay.save())(function (err, barangay) {
-                if(err) callback(err.message || 'Error updating barangay.');
-                else callback(null, barangay);
-            });
-        },
-
-        //delete old path
-        function (barangay, callback) {
-            if(req.body.path){
-                promiseToCallback(db.models.BarangayPath.destroy({
-                    where: {barangay: barangay.id}
-                }))(function (err) {
-                    if(err) callback(err.message || 'Error updating path.');
+            db.models.Barangay.findById(req.params.id)
+                .then(function (barangay) {
+                    if(!barangay) callback(['api:3x22', 'Barangay ID doesn\'t exist.']);
                     else callback(null, barangay);
-                });
-            } else callback(null, barangay);
-        },
-
-        //save new path
-        function (barangay, callback) {
-            if(req.body.path && (req.body.path.length > 0)){
-                var saveLatLng = function (index) {
-                    var barangayPath = new db.models.BarangayPath();
-                    barangayPath.barangay = barangay.id;
-                    barangayPath.lat = req.body.path[index].lat;
-                    barangayPath.lng = req.body.path[index].lng;
-                    promiseToCallback(barangayPath.save())(function (err) {
-                        if(err) callback(err.message || 'Error saving barangay path.');
-                        else if((index+1) < req.body.path.length) saveLatLng((index+1));
-                        else callback(null, barangay);
-                    });
-                };
-                saveLatLng(0);
-            } else callback(null, barangay);
-        }
-    ], function (err) {
-        if(err) res.send({success: false, message: err});
-        else res.send({success: true, message: 'Place added.'});
-    });
-});
-router.delete('/places/delete/:id', function (req, res) {
-    async.waterfall([
-
-        //validate session
-        function (callback) {
-            if(!req.session.username) callback('Unauthorized Access.');
-            else callback();
-        },
-
-        //validate account
-        function (callback) {
-            userPassport.validateByUsername(req.session.username, function (err, user) {
-                if(err) callback(err);
-                else if(user.type != 'ADMIN') callback('You are unauthorized Access to execute this action.');
-                else callback();
+                }).catch(function () {
+                callback(['api:3x23', 'Cannot retrieve data.']);
             });
         },
 
         //delete path
-        function (callback) {
-            promiseToCallback(db.models.BarangayPath.destroy({
-                where: {barangay: req.params.id}
-            }))(function (err) {
-                if(err) callback(err.message || 'Error deleting paths path.');
-                else callback();
-            });
+        function (barangay, callback) {
+            db.models.BarangayPath.destroy({where: {barangay: barangay.id}})
+                .then(function () {
+                    callback(null, barangay);
+                }).catch(function (err) {
+                    callback(['api:3x24', err.message || 'Error deleting path.']);
+                });
         },
 
         //delete barangay
-        function (callback) {
-            promiseToCallback(db.models.Barangay.destroy({
-                where: {id: req.params.id}
-            }))(function (err) {
-                if(err) callback(err.message || 'Error deleting barangay.');
-                else callback();
+        function (barangay, callback) {
+            barangay.destroy()
+                .then(function () {
+                    callback();
+                }).catch(function (err) {
+                callback(['api:3x25', err.message || 'Error deleting barangay.']);
             });
         }
-
     ], function (err) {
-        if(err) res.send({success: false, message: err});
-        else res.send({success: true, message: 'Place deleted.'});
+        if(err) res.send({error: err});
+        else res.send({success: true});
     });
 });
-router.delete('/places/delete-district/:id', function (req, res) {
-    async.waterfall([
-
-        //validate session
-        function (callback) {
-            if(!req.session.username) callback('Unauthorized Access.');
-            else callback();
-        },
-
-        //validate account
-        function (callback) {
-            userPassport.validateByUsername(req.session.username, function (err, user) {
-                if(err) callback(err);
-                else if(user.type != 'ADMIN') callback('You are unauthorized Access to execute this action.');
-                else callback();
-            });
-        },
-
-        //delete district
-        function (callback) {
-            promiseToCallback(db.models.District.destroy({
-                where: {id: req.params.id}
-            }))(function (err) {
-                if(err) callback(err.message || 'Error deleting district');
-                else callback();
-            });
-        }
-
-    ], function (err) {
-        if(err) res.send({success: false, message: err});
-        else res.send({success: true, message: 'District deleted.'});
-    });
-});
-
 
 
 
