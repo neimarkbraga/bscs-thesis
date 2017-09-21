@@ -586,7 +586,83 @@ router.get('/barangay', function (req, res) {
         else res.send(barangays);
     });
 });
+router.put('/barangay/:id', function (req, res) {
+    async.waterfall([
 
+        function (callback) {
+            if(!res.locals.user) callback(['api:3x10', 'You are not logged in.']);
+            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:3x11', 'Unauthorized Access.']);
+            else if(!req.body.name) callback(['api:3x12', 'name is required.']);
+            else if(!req.body.district) callback(['api:3x13', 'district is required.']);
+            //else if(!req.body.path) callback(['api:3x5', 'path is required.']);
+            else if(req.body.coastal == undefined) callback(['api:3x14', 'coastal is required.']);
+            else callback();
+        },
+
+        //get model
+        function (callback) {
+            db.models.Barangay.findById(req.params.id)
+                .then(function (barangay) {
+                    if(!barangay) callback(['api:3x15', 'Barangay ID doesn\'t exist.']);
+                    else callback(null, barangay);
+                }).catch(function () {
+                    callback(['api:3x16', 'Cannot retrieve data.']);
+                });
+        },
+
+
+        //update barangay
+        function (barangay, callback) {
+            barangay.name = req.body.name;
+            barangay.district = req.body.district;
+            barangay.isCoastal = req.body.coastal;
+            barangay.save()
+                .then(function (barangay) {
+                    callback(null, barangay);
+                }).catch(function (err) {
+                callback(['api:3x17', err.message || 'Error saving new details.']);
+            });
+        },
+
+        //delete old path
+        function (barangay, callback) {
+            if(req.body.path){
+                db.models.BarangayPath.destroy({
+                    where: {barangay: barangay.id}
+                }).then(function () {
+                    callback(null, barangay);
+                }).catch(function () {
+                    callback(['api:3x18', err.message || 'Error updating path.']);
+                });
+            } else callback(null, barangay);
+        },
+
+        //save path
+        function (barangay, callback) {
+            if(req.body.path && (req.body.path.length > 0)){
+                var saveLatLng = function (index) {
+                    var barangayPath = new db.models.BarangayPath();
+                    barangayPath.barangay = barangay.id;
+                    barangayPath.lat = req.body.path[index].lat;
+                    barangayPath.lng = req.body.path[index].lng;
+                    barangayPath.save()
+                        .then(function () {
+                            var nextIndex = index + 1;
+                            if(nextIndex < req.body.path.length) saveLatLng(nextIndex);
+                            else callback(null, barangay);
+                        }).catch(function (err) {
+                        callback(['api:3x19', err.message || 'Error updating path.']);
+                    });
+                };
+                saveLatLng(0);
+            } else callback(null, barangay);
+        }
+
+    ], function (err) {
+        if(err) res.send({error: err});
+        else res.send({success: true});
+    });
+});
 
 
 

@@ -66,7 +66,9 @@ module.exports = {
             }).catch(function (err) {cb(err);});
         };
         var checkAccounts = function () {
-            promiseToCallback(sequelize.models.User.findAndCount())(function (err, result) {
+            promiseToCallback(sequelize.models.User.findAndCount({
+                where: {type: 'ADMIN'}
+            }))(function (err, result) {
                 if(err) throw err;
                 else if(result.count <= 0) createDefaultAdminAccount();
             });
