@@ -32,10 +32,10 @@
                         <div class="input-group">
                             <input type="text" class="form-control" ng-model="searchKeyword" placeholder="Search Place..." />
                             <span class="input-group-btn">
-                                <button class="btn btn-primary" type="submit">
+                                <button class="btn btn-dark" type="submit">
                                     <span class="material-icons float-right">search</span>
                                 </button>
-                                <button class="btn btn-dark" ng-click="manager.openAddBarangayModal()" type="button">
+                                <button class="btn btn-primary" ng-click="manager.openAddBarangayModal()" type="button">
                                     <span class="material-icons float-left">add</span>
                                     Add New
                                 </button>
@@ -60,12 +60,30 @@
                             <div class="pre-loader m-auto"></div>
                         </div>
                     </div>
-
-                    <div class="m-5"></div>
                 </div>
             </div>
-            <div class="tab-pane fade" id="nav-district" role="tabpanel">...</div>
+            <div class="tab-pane fade" id="nav-district" role="tabpanel">
+                <div class="p-2"></div>
+                <div class="list-group">
+                    <div ng-repeat="district in manager.districtList track by $index" class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <div>
+                                <h5 class="mb-1">{{district.name}}</h5>
+                                <p class="mb-1">{{district.City.name}}</p>
+                            </div>
+                            <div>
+                                <button class="btn btn-outline-primary" type="button">Update</button>
+                                <button class="btn btn-outline-danger" type="button">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="p-2 text-right">
+                    <button class="btn btn-primary" type="button">Add New</button>
+                </div>
+            </div>
         </div>
+        <div class="m-5"></div>
     </div>
     <div id="BarangayFormModal" class="modal fade" tabindex="-1" role="dialog">
         <div class="modal-dialog modal-lg">
@@ -111,6 +129,7 @@
                 }
             };
             manager.barangayList = [];
+            manager.districtList = [];
             manager.searchBarangay = function (keyword) {
                 keyword = keyword || '';
                 manager.barangayList = [];
@@ -169,6 +188,24 @@
                 })
                 $('#BarangayFormModal').modal('show');
             };
+            manager.loadDistrict = function () {
+                var preloader = new Dialog.preloader('Getting district list.');
+                serverSv.request('/api/district')
+                    .then(function (response) {
+                        var data = response.data;
+                        if(data.error) {
+                            Dialog.alert('Load More Places', data.error[1]);
+                            ErrorLog.push(data.error);
+                        } else manager.districtList = data;
+                    })
+                    .catch(function (err) {
+                        Dialog.alert('Load Districts', 'An unknown error occurred.');
+                        ErrorLog.push(err);
+                    })
+                    .finally(function () {
+                        preloader.destroy();
+                    });
+            };
 
 
             //init
@@ -179,12 +216,12 @@
                 }
                 manager.mapPolygon = polygon;
             });
-
             $('#BarangayFormModal').on('shown.bs.modal', function () {
                 google.maps.event.trigger(manager.googleMap, 'resize');
                 if(manager.mapPolygon) manager.googleMap.fitBounds(mapSv.getPolygonBounds(manager.mapPolygon));
                 else manager.googleMap.setOptions(mapSv.defaultMapOptions);
             });
+            manager.loadDistrict();
         });
 </script>
 </body>
