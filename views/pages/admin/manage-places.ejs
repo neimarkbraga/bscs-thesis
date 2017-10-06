@@ -1,70 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <% include ../../partials/global-meta.ejs %>
-        <title><%= appSettings.appName %></title>
-        <% include ../../partials/global-link.ejs %>
-        <% include ../../partials/global-script.ejs %>
-        <script type="application/javascript" src="/app/directives/eventDirectives.js"></script>
-    </head>
-    <body ng-app="app" ng-controller="ctrl as manager">
-        <header>
-            <% include ../../partials/global-navbar.ejs %>
-            <div class="container pt-4">
-                <h4>Manage Places</h4>
-                <hr />
-            </div>
-        </header>
-        <main>
-            <div class="container">
-                <form ng-submit="manager.searchBarangay(searchKeyword);">
-                    <div class="input-group">
-                        <input type="text" class="form-control" ng-model="searchKeyword" placeholder="Search Place..." />
-                        <span class="input-group-btn">
-                            <button class="btn btn-secondary" type="submit">
-                                <span class="material-icons float-right">search</span>
-                            </button>
-                        </span>
-                    </div>
+<head>
+    <% include ../../partials/global-meta.ejs %>
+    <title><%= appSettings.appName %></title>
+    <% include ../../partials/global-link.ejs %>
+    <% include ../../partials/global-script.ejs %>
+    <script type="application/javascript" src="/app/directives/eventDirectives.js"></script>
+</head>
+<body ng-app="app" ng-controller="ctrl as manager">
+<header>
+    <% include ../../partials/global-navbar.ejs %>
+    <div class="container pt-4">
+        <h4>Manage Places</h4>
+        <hr />
+    </div>
+</header>
+<main>
+    <div class="container">
+        <nav class="nav nav-tabs">
+            <a class="nav-item nav-link active" data-toggle="tab" href="#nav-barnagay" role="tab">Barangay</a>
+            <a class="nav-item nav-link" data-toggle="tab" href="#nav-district" role="tab">District</a>
+        </nav>
+        <div class="tab-content">
+            <div class="tab-pane fade show active" id="nav-barnagay" role="tabpanel">
+                <form class="p-2" ng-submit="manager.searchBarangay(searchKeyword);">
+                    <fieldset ng-disabled="manager.searchOptions.barangay.status.busy">
+                        <div class="input-group">
+                            <input type="text" class="form-control" ng-model="searchKeyword" placeholder="Search Place..." />
+                            <span class="input-group-btn">
+                                <button class="btn btn-primary" type="submit">
+                                    <span class="material-icons float-right">search</span>
+                                </button>
+                                <button class="btn btn-dark" type="submit">
+                                    <span class="material-icons float-left">add</span>
+                                    Add New
+                                </button>
+                            </span>
+                        </div>
+                    </fieldset>
                 </form>
+
                 <div on-scroll-to-window-bottom="manager.loadBarangay()">
-                    <div ng-repeat="barangay in manager.barangayList track by $index">{{barangay.name}}</div>
+                    <div class="list-group">
+                        <a href="#" ng-repeat="barangay in manager.barangayList track by $index" class="list-group-item list-group-item-action flex-column align-items-start">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{barangay.name}}</h5>
+                                <small class="text-muted">
+                                    <span class="material-icons float-left{{(barangay.isCoastal)?' text-success':''}}">beach_access</span>
+                                    {{(barangay.isCoastal)? 'Coastal Area': 'Not Coastal Area'}}
+                                </small>
+                            </div>
+                            <p class="mb-1">{{barangay.District.name}}, {{barangay.District.City.name}}</p>
+                        </a>
+                        <div class="list-group-item" ng-if="manager.searchOptions.barangay.status.busy">
+                            <div class="pre-loader m-auto"></div>
+                        </div>
+                    </div>
+
+                    <div class="m-5"></div>
                 </div>
             </div>
-        </main>
-        <footer>
-            <% include ../../partials/global-footer.ejs %>
-        </footer>
-        <script>
-            angular.module('app', ['eventDirectives', 'serverService'])
-                .controller('ctrl', function (serverSv) {
-                    var manager = this;
-                    manager.searchOptions = {
-                        barangay: {
-                            status: {busy: false, complete: false},
-                            query: {page: 1, limit: 10, path: true}
-                        }
-                    };
-                    manager.barangayList = [];
-                    manager.searchBarangay = function (keyword) {
-                        keyword = keyword || '';
-                        manager.searchOptions.barangay.query.page = 1;
-                        if(keyword.trim() == '') manager.searchOptions.barangay.query.keyword;
-                        else manager.searchOptions.barangay.query.keyword = keyword;
-                        manager.loadBarangay();
-                    };
-                    manager.loadBarangay = function () {
-                        serverSv.request('/api/barangay?' + $.param(manager.searchOptions.barangay.query))
-                            .then(function (response) {
-                                var data = response.data;
-                                console.log(data);
-                            })
-                            .catch(function (err) {
-                                Dialog.alert('Load More Places', 'An unknown error occurred.');
-                                ErrorLog.push(err);
-                            });
-                    };
-                });
-        </script>
-    </body>
+            <div class="tab-pane fade" id="nav-district" role="tabpanel">...</div>
+        </div>
+    </div>
+</main>
+<footer>
+    <% include ../../partials/global-footer.ejs %>
+</footer>
+<script>
+    angular.module('app', ['eventDirectives', 'serverService'])
+        .controller('ctrl', function (serverSv) {
+            var manager = this;
+            manager.searchOptions = {
+                barangay: {
+                    status: {busy: false, complete: false},
+                    query: {page: 1, limit: 15, path: true}
+                }
+            };
+            manager.barangayList = [];
+            manager.searchBarangay = function (keyword) {
+                keyword = keyword || '';
+                manager.barangayList = [];
+                manager.searchOptions.barangay.query.page = 1;
+                manager.searchOptions.barangay.status.complete = false;
+                if(keyword.trim() == '') delete manager.searchOptions.barangay.query.keyword;
+                else manager.searchOptions.barangay.query.keyword = keyword;
+                manager.loadBarangay();
+            };
+            manager.loadBarangay = function () {
+                if(!manager.searchOptions.barangay.status.complete && !manager.searchOptions.barangay.status.busy){
+                    manager.searchOptions.barangay.status.busy = true;
+                    serverSv.request('/api/barangay?' + $.param(manager.searchOptions.barangay.query))
+                        .then(function (response) {
+                            var data = response.data;
+                            if(data.error) {
+                                Dialog.alert('Load More Places', data.error[1]);
+                                ErrorLog.push(data.error);
+                            }
+                            else {
+                                if(data.length == 0) manager.searchOptions.barangay.status.complete = true;
+                                else {
+                                    manager.searchOptions.barangay.query.page++;
+                                    for(var i = 0; i < data.length; i++) manager.barangayList.push(data[i]);
+                                }
+                            }
+                        })
+                        .catch(function (err) {
+                            Dialog.alert('Load More Places', 'An unknown error occurred.');
+                            ErrorLog.push(err);
+                        })
+                        .finally(function () {
+                            manager.searchOptions.barangay.status.busy = false;
+                        });
+                }
+            };
+        });
+</script>
+</body>
 </html>
