@@ -24,7 +24,6 @@ angular.module('mapService', [])
                 } catch (e) {
                     return {lat: 0, lng: 0};
                 }
-
             },
             getPolygonBounds: function (polygon) {
                 var bounds = new google.maps.LatLngBounds();

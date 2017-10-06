@@ -1,4 +1,7 @@
 {
   "appName":"Disaster Risk Management System",
-  "port": 80
+  "port": 80,
+  "googleMaps": {
+    "apiKey":"AIzaSyCdhvS2smTmUdwVkMJ-ga2UO-Bfb6JxPhQ"
+  }
 }

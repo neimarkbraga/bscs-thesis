@@ -5,7 +5,11 @@
     <title><%= appSettings.appName %></title>
     <% include ../../partials/global-link.ejs %>
     <% include ../../partials/global-script.ejs %>
+
+    <!--page script-->
     <script type="application/javascript" src="/app/directives/eventDirectives.js"></script>
+    <script type="application/javascript" src="/app/services/mapService.js"></script>
+    <script type="application/javascript" src="https://maps.googleapis.com/maps/api/js?libraries=drawing&key=<%- appSettings.googleMaps.apiKey %>"></script>
 </head>
 <body ng-app="app" ng-controller="ctrl as manager">
 <header>
@@ -31,7 +35,7 @@
                                 <button class="btn btn-primary" type="submit">
                                     <span class="material-icons float-right">search</span>
                                 </button>
-                                <button class="btn btn-dark" type="submit">
+                                <button class="btn btn-dark" ng-click="manager.openAddBarangayModal()" type="button">
                                     <span class="material-icons float-left">add</span>
                                     Add New
                                 </button>
@@ -42,7 +46,7 @@
 
                 <div on-scroll-to-window-bottom="manager.loadBarangay()">
                     <div class="list-group">
-                        <a href="#" ng-repeat="barangay in manager.barangayList track by $index" class="list-group-item list-group-item-action flex-column align-items-start">
+                        <a href="#" ng-click="manager.openUpdateBarangayModal($index)" ng-repeat="barangay in manager.barangayList track by $index" class="list-group-item list-group-item-action flex-column align-items-start">
                             <div class="d-flex w-100 justify-content-between">
                                 <h5 class="mb-1">{{barangay.name}}</h5>
                                 <small class="text-muted">
@@ -63,14 +67,43 @@
             <div class="tab-pane fade" id="nav-district" role="tabpanel">...</div>
         </div>
     </div>
+    <div id="BarangayFormModal" class="modal fade" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">Barangay Form</h3>
+                </div>
+                <div class="modal-body">
+                    <div id="GoogleMaps" style="min-height: 300px; height: 50vh;"></div>
+                </div>
+                <div class="modal-footer">
+
+                </div>
+            </div>
+        </div>
+    </div>
 </main>
 <footer>
     <% include ../../partials/global-footer.ejs %>
 </footer>
 <script>
-    angular.module('app', ['eventDirectives', 'serverService'])
-        .controller('ctrl', function (serverSv) {
+    angular.module('app', ['eventDirectives', 'serverService', 'mapService'])
+        .controller('ctrl', function (serverSv, mapSv) {
             var manager = this;
+            manager.mapPolygon = undefined;
+            manager.googleMap = new google.maps.Map(document.getElementById('GoogleMaps'), mapSv.defaultMapOptions);
+            manager.mapDrawingManager = new google.maps.drawing.DrawingManager({
+                map: manager.googleMap,
+                drawingMode: 'polygon',
+                drawingControl: true,
+                drawingControlOptions: {
+                    position: google.maps.ControlPosition.TOP_CENTER,
+                    drawingModes: ['polygon']
+                },
+                polygonOptions: {
+                    editable: true
+                }
+            });
             manager.searchOptions = {
                 barangay: {
                     status: {busy: false, complete: false},
@@ -114,6 +147,44 @@
                         });
                 }
             };
+            manager.openAddBarangayModal = function () {
+                if(manager.mapPolygon) {
+                    manager.mapPolygon.setMap(null);
+                    manager.mapPolygon = undefined;
+                }
+                manager.mapDrawingManager.setDrawingMode('polygon');
+                $('#BarangayFormModal').modal('show');
+            };
+            manager.openUpdateBarangayModal = function (index) {
+                var barangay = manager.barangayList[index];
+                manager.mapDrawingManager.setDrawingMode(null);
+                if(manager.mapPolygon) {
+                    manager.mapPolygon.setMap(null);
+                    manager.mapPolygon = undefined;
+                }
+                manager.mapPolygon = new google.maps.Polygon({
+                    map: manager.googleMap,
+                    path: barangay.BarangayPaths,
+                    editable: true
+                })
+                $('#BarangayFormModal').modal('show');
+            };
+
+
+            //init
+            manager.mapDrawingManager.addListener('polygoncomplete', function (polygon) {
+                if(manager.mapPolygon) {
+                    manager.mapPolygon.setMap(null);
+                    manager.mapPolygon = undefined;
+                }
+                manager.mapPolygon = polygon;
+            });
+
+            $('#BarangayFormModal').on('shown.bs.modal', function () {
+                google.maps.event.trigger(manager.googleMap, 'resize');
+                if(manager.mapPolygon) manager.googleMap.fitBounds(mapSv.getPolygonBounds(manager.mapPolygon));
+                else manager.googleMap.setOptions(mapSv.defaultMapOptions);
+            });
         });
 </script>
 </body>
