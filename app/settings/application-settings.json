@@ -1,3 +1,4 @@
 {
-  "appName":"Disaster Risk Management System"
+  "appName":"Disaster Risk Management System",
+  "port": 80
 }

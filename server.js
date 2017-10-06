@@ -11,24 +11,10 @@ var fse                 =   require('fs-extra');
 var db                  =   require('./app/modules/dbSequelize');
 
 //variables
-var app = express();
-var port = process.env.PORT || '80';
-var sensitive = require('./app/settings/sensitive-settings.json');
+var senSettings = require('./app/settings/sensitive-settings.json');
 var appSettings = require('./app/settings/application-settings.json');
-var sessionOption = {
-    secret: sensitive.secretKey,
-    name: 'cdrrmoapp.sid',
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-        secure: 'auto',
-        maxAge: 86400000 //1 day
-    }
-};
-
-//ensure
-fse.ensureDirSync('.logs');
-fse.ensureDirSync('public');
+var port = appSettings.port;
+var app = express();
 
 //set
 app.set('view engine', 'ejs');
@@ -39,7 +25,13 @@ app.use(favicon(__dirname + '/public/assets/img/logo/logo-100px.png'));
 app.use(express.static(__dirname + '/public'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(session(sessionOption));
+app.use(session({
+    secret: senSettings.secretKey,
+    name: 'cdrrmoapp.sid',
+    resave: false,
+    saveUninitialized: true,
+    cookie: {secure: 'auto', maxAge: 86400000} //1 day
+}));
 
 //set res locals
 app.use(function (req, res, next) {
