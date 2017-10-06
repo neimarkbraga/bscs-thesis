@@ -528,7 +528,7 @@ router.get('/barangay', function (req, res) {
         //retrieve list
         function (callback) {
             var query = {
-                attributes: { exclude: ['createdAt', 'updatedAt']},
+                attributes: {exclude: ['createdAt', 'updatedAt']},
                 include: [
                     {
                         model: db.models.District,
@@ -560,7 +560,12 @@ router.get('/barangay', function (req, res) {
             //search keyword
             if(keyword) {
                 keyword = '%' + keyword.replace(/ /g, '%') + '%';
-                query.where = {name: {$like: keyword}};
+                query.where = {
+                    $or: [
+                        {name: {$like: keyword}},
+                        db.Sequelize.where(db.Sequelize.col('district.NAME'), {$like: keyword})
+                    ]
+                };
             }
 
             //page
