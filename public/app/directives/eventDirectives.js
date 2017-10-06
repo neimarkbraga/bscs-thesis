@@ -1,13 +1,35 @@
 angular.module('eventDirectives', [])
-    .directive('onScrollToBottom', function ($document) {
+    .directive('onScrollToWindowBottom', function ($document) {
         return {
             restrict: 'A',
             link: function (scope, element, attrs) {
-                var doc = angular.element($document)[0].body;
-                var footer = document.getElementsByTagName('footer')[0];
-                $document.bind("scroll", function () {
-                    if (doc.scrollTop + doc.offsetHeight >= (doc.scrollHeight - footer.clientHeight)) scope.$apply(attrs.onScrollToBottom);
-                });
+                var reachedBottomOfDiv = function () {
+                    var elementHeight = $(element).offset().top + $(element).outerHeight();
+                    var bodyScrollHeight = $(window).scrollTop() + $(window).outerHeight();
+                    return bodyScrollHeight >= elementHeight;
+                };
+                $document.bind("scroll", function () {if(reachedBottomOfDiv()) scope.$apply(attrs.onScrollToWindowBottom);});
+                setTimeout(function () {if(reachedBottomOfDiv()) scope.$apply(attrs.onScrollToWindowBottom);});
+            }
+        };
+    })
+    .directive('onScrollToBottom', function () {
+        return {
+            restrict: 'A',
+            link: function (scope, element, attrs) {
+                var childHeight = function (el) {
+                    var total = 0;
+                    var children = $(el).children();
+                    for(var i = 0; i < children.length; i++) total += $(children[i]).outerHeight();
+                    return total;
+                };
+                var reachedBottomOfDiv = function () {
+                    var totalHeight = childHeight(element);
+                    var bottomScroll = ($(element).scrollTop() + $(element).height()) + 5;
+                    return bottomScroll >= totalHeight;
+                };
+                element.bind("scroll", function () {if(reachedBottomOfDiv()) scope.$apply(attrs.onScrollToBottom);});
+                setTimeout(function () {if(reachedBottomOfDiv()) scope.$apply(attrs.onScrollToBottom);});
             }
         };
     });

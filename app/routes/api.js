@@ -161,7 +161,7 @@ router.get('/user', function (req, res) {
             };
             var keyword = req.query.keyword;
             var page = req.query.page;
-            var count = req.query.count || 10;
+            var limit = req.query.limit || 10;
 
             //search keyword
             if(keyword) {
@@ -179,9 +179,9 @@ router.get('/user', function (req, res) {
             //page
             if(page){
                 page = parseInt(page);
-                count = parseInt(count);
-                query.offset = (page - 1) * count;
-                query.limit = count;
+                limit = parseInt(limit);
+                query.offset = (page - 1) * limit;
+                query.limit = limit;
             }
 
             //query
@@ -360,7 +360,7 @@ router.get('/district', function (req, res) {
             };
             var keyword = req.query.keyword;
             var page = req.query.page;
-            var count = req.query.count || 10;
+            var limit = req.query.limit || 10;
 
             //search keyword
             if(keyword) {
@@ -371,9 +371,9 @@ router.get('/district', function (req, res) {
             //page
             if(page){
                 page = parseInt(page);
-                count = parseInt(count);
-                query.offset = (page - 1) * count;
-                query.limit = count;
+                limit = parseInt(limit);
+                query.offset = (page - 1) * limit;
+                query.limit = limit;
             }
 
             //query
@@ -549,7 +549,7 @@ router.get('/barangay', function (req, res) {
             var path = req.query.path;
             var keyword = req.query.keyword;
             var page = req.query.page;
-            var count = req.query.count || 10;
+            var limit = req.query.limit || 10;
 
             //path
             if(path) query.include.push({
@@ -560,20 +560,15 @@ router.get('/barangay', function (req, res) {
             //search keyword
             if(keyword) {
                 keyword = '%' + keyword.replace(/ /g, '%') + '%';
-                query.where = {
-                    $or: [
-                        {name: {$like: keyword}},
-                        db.Sequelize.where(db.Sequelize.col('district.NAME'), {$like: keyword})
-                    ]
-                };
+                query.where = {name: {$like: keyword}};
             }
 
             //page
             if(page){
                 page = parseInt(page);
-                count = parseInt(count);
-                query.offset = (page - 1) * count;
-                query.limit = count;
+                limit = parseInt(limit);
+                query.offset = (page - 1) * limit;
+                query.limit = limit;
             }
 
 

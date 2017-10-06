@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <% include ../../partials/global-meta.ejs %>
+        <title><%= appSettings.appName %></title>
+        <% include ../../partials/global-link.ejs %>
+        <% include ../../partials/global-script.ejs %>
+        <script type="application/javascript" src="/app/directives/eventDirectives.js"></script>
+    </head>
+    <body ng-app="app" ng-controller="ctrl as manager">
+        <header>
+            <% include ../../partials/global-navbar.ejs %>
+            <div class="container pt-4">
+                <h4>Manage Places</h4>
+                <hr />
+            </div>
+        </header>
+        <main>
+            <div class="container">
+                <form ng-submit="manager.searchBarangay(searchKeyword);">
+                    <div class="input-group">
+                        <input type="text" class="form-control" ng-model="searchKeyword" placeholder="Search Place..." />
+                        <span class="input-group-btn">
+                            <button class="btn btn-secondary" type="submit">
+                                <span class="material-icons float-right">search</span>
+                            </button>
+                        </span>
+                    </div>
+                </form>
+                <div on-scroll-to-window-bottom="manager.loadBarangay()">
+                    <div ng-repeat="barangay in manager.barangayList track by $index">{{barangay.name}}</div>
+                </div>
+            </div>
+        </main>
+        <footer>
+            <% include ../../partials/global-footer.ejs %>
+        </footer>
+        <script>
+            angular.module('app', ['eventDirectives', 'serverService'])
+                .controller('ctrl', function (serverSv) {
+                    var manager = this;
+                    manager.searchOptions = {
+                        barangay: {
+                            status: {busy: false, complete: false},
+                            query: {page: 1, limit: 10, path: true}
+                        }
+                    };
+                    manager.barangayList = [];
+                    manager.searchBarangay = function (keyword) {
+                        keyword = keyword || '';
+                        manager.searchOptions.barangay.query.page = 1;
+                        if(keyword.trim() == '') manager.searchOptions.barangay.query.keyword;
+                        else manager.searchOptions.barangay.query.keyword = keyword;
+                        manager.loadBarangay();
+                    };
+                    manager.loadBarangay = function () {
+                        serverSv.request('/api/barangay?' + $.param(manager.searchOptions.barangay.query))
+                            .then(function (response) {
+                                var data = response.data;
+                                console.log(data);
+                            })
+                            .catch(function (err) {
+                                Dialog.alert('Load More Places', 'An unknown error occurred.');
+                                ErrorLog.push(err);
+                            });
+                    };
+                });
+        </script>
+    </body>
+</html>
