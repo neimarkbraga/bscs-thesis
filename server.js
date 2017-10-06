@@ -8,7 +8,7 @@ var rfs                 =   require('rotating-file-stream');
 var sequelize           =   require('sequelize');
 var path                =   require('path');
 var fse                 =   require('fs-extra');
-var db                  =   require('./app/models');
+var db                  =   require('./app/modules/dbSequelize');
 
 //variables
 var app = express();
@@ -30,15 +30,6 @@ var sessionOption = {
 fse.ensureDirSync('.logs');
 fse.ensureDirSync('public');
 
-//ensure database
-db.sequelize
-    .sync(/*{force: true}*/)
-    .then(function () {
-        console.log('Database status: OK');
-        db.initContents();
-    })
-    .catch(function (err) {throw err;});
-
 //set
 app.set('view engine', 'ejs');
 
@@ -53,10 +44,7 @@ app.use(session(sessionOption));
 //set res locals
 app.use(function (req, res, next) {
     res.locals.appSettings = appSettings;
-    next();
-});
-app.use(function (req, res, next) {
-    db.models.User.findAll({
+    db.models.User.findOne({
         attributes: { exclude: ['password', 'enabled', 'type', 'barangay', 'createdAt', 'updatedAt']},
         where: {
             username: req.session.username,
@@ -81,21 +69,13 @@ app.use(function (req, res, next) {
                 ]
             }
         ]
-    }).then(function (users) {
-        if(users.length > 0) res.locals.user = users[0];
-        else res.locals.user = undefined;
+    }).then(function (user) {
+        res.locals.user = user;
     }).catch(function () {
         res.locals.user = undefined;
     }).finally(function () {
         next();
     });
-});
-
-//user passport on pages
-app.use(['/admin', '/brgy', '/cswd', '/cdrrmo'], function (req, res, next) {
-    var accountType = req.originalUrl.split('/')[1].toUpperCase();
-    if((!res.locals.user) || (res.locals.user.UserType.code != accountType)) throw 'Unauthorized Access';
-    else next();
 });
 
 //routes
@@ -120,5 +100,5 @@ app.use(function (err, req, res, next) {
 var server = app.listen(port, function () {
     var host = server.address().address;
     var port = server.address().port;
-    console.log('Server status: RUNNING @ ' + host + ':' + port);
+    console.log('Server Running @ ' + host + ':' + port);
 });

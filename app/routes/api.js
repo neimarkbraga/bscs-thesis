@@ -1,9 +1,8 @@
-var promiseToCallback   =   require('promise-to-callback');
 var async               =   require('async');
 var express             =   require('express');
 var router              =   express.Router();
-var db                  =   require('../models');
-
+var db                  =   require('../modules/dbSequelize');
+var acctTypes           =   require('../variables/accountTypes.json');
 
 
 //  Author:     Neimark Junsay Braga
@@ -27,7 +26,7 @@ router.post('/user', function (req, res) {
 
         //check session & fields
         function (callback) {
-            if(!res.locals.user || (res.locals.user.UserType.code != 'ADMIN')) callback(['api:1x1', 'Unauthorized Access.']);
+            if(!res.locals.user || (res.locals.user.UserType.code != acctTypes.admin.code)) callback(['api:1x1', 'Unauthorized Access.']);
             else if(!req.body.username) callback(['api:1x2', 'username is required.']);
             else if(!req.body.type) callback(['api:1x3', 'type is required.']);
             else if(!req.body.firstname) callback(['api:1x4', 'firstname is required.']);
@@ -82,12 +81,13 @@ router.post('/user/login', function (req, res) {
 
         //get data
         function (callback) {
-            promiseToCallback(db.models.User.findOne({
-                where: {username: req.body.username}
-            }))(function (err, user) {
-                if(err) callback(['api:1x13', err.message || 'Cannot retrieve data.']);
-                else callback(null, user);
-            });
+            db.models.User.findOne({where: {username: req.body.username}})
+                .then(function (user) {
+                    callback(null, user);
+                })
+                .catch(function (err) {
+                    callback(['api:1x13', err.message || 'Cannot retrieve data.']);
+                });
         },
 
         //check
@@ -131,7 +131,7 @@ router.get('/user', function (req, res) {
         //validate session
         function (callback) {
             if(!res.locals.user) callback(['api:1x20', 'You are not logged in.']);
-            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:1x21?', 'Unauthorized Access.']);
+            else if(res.locals.user.UserType.code != acctTypes.admin.code) callback(['api:1x21?', 'Unauthorized Access.']);
             else callback();
         },
 
@@ -242,7 +242,7 @@ router.put('/user/password/reset/:username', function (req, res) {
         //validate account
         function (callback) {
             if(!res.locals.user) callback(['api:1x31', 'You are not logged in.']);
-            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:1x32', 'Unauthorized Access.']);
+            else if(res.locals.user.UserType.code != acctTypes.admin.code) callback(['api:1x32', 'Unauthorized Access.']);
             else callback();
         },
 
@@ -279,7 +279,7 @@ router.delete('/user/:username', function (req, res) {
         //validate account
         function (callback) {
             if(!res.locals.user) callback(['api:1x36', 'You are not logged in.']);
-            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:1x37', 'Unauthorized Access.']);
+            else if(res.locals.user.UserType.code != acctTypes.admin.code) callback(['api:1x37', 'Unauthorized Access.']);
             else callback();
         },
 
@@ -321,7 +321,7 @@ router.post('/district', function (req, res) {
         //validate user and fields
         function (callback) {
             if(!res.locals.user) callback(['api:2x1', 'You are not logged in.']);
-            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:2x2', 'Unauthorized Access.']);
+            else if(res.locals.user.UserType.code != acctTypes.admin.code) callback(['api:2x2', 'Unauthorized Access.']);
             else if(!req.body.name) callback(['api:2x3', 'name is required.']);
             else callback();
         },
@@ -396,7 +396,7 @@ router.put('/district/:id', function (req, res) {
         //validate user and fields
         function (callback) {
             if(!res.locals.user) callback(['api:2x6', 'You are not logged in.']);
-            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:2x7', 'Unauthorized Access.']);
+            else if(res.locals.user.UserType.code != acctTypes.admin.code) callback(['api:2x7', 'Unauthorized Access.']);
             else if(!req.body.name) callback(['api:2x8', 'name is required.']);
             else callback();
         },
@@ -434,7 +434,7 @@ router.delete('/district/:id', function (req, res) {
         //validate user and fields
         function (callback) {
             if(!res.locals.user) callback(['api:2x12', 'You are not logged in.']);
-            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:2x13', 'Unauthorized Access.']);
+            else if(res.locals.user.UserType.code != acctTypes.admin.code) callback(['api:2x13', 'Unauthorized Access.']);
             else callback();
         },
 
@@ -465,7 +465,6 @@ router.delete('/district/:id', function (req, res) {
     });
 });
 
-
 //===============================================
 //  3. Barangay
 //===============================================
@@ -475,7 +474,7 @@ router.post('/barangay', function (req, res) {
 
         function (callback) {
             if(!res.locals.user) callback(['api:3x1', 'You are not logged in.']);
-            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:3x2', 'Unauthorized Access.']);
+            else if(res.locals.user.UserType.code != acctTypes.admin.code) callback(['api:3x2', 'Unauthorized Access.']);
             else if(!req.body.name) callback(['api:3x3', 'name is required.']);
             else if(!req.body.district) callback(['api:3x4', 'district is required.']);
             else if(!req.body.path) callback(['api:3x5', 'path is required.']);
@@ -591,7 +590,7 @@ router.put('/barangay/:id', function (req, res) {
 
         function (callback) {
             if(!res.locals.user) callback(['api:3x10', 'You are not logged in.']);
-            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:3x11', 'Unauthorized Access.']);
+            else if(res.locals.user.UserType.code != acctTypes.admin.code) callback(['api:3x11', 'Unauthorized Access.']);
             else if(!req.body.name) callback(['api:3x12', 'name is required.']);
             else if(!req.body.district) callback(['api:3x13', 'district is required.']);
             else if(req.body.coastal == undefined) callback(['api:3x14', 'coastal is required.']);
@@ -667,7 +666,7 @@ router.delete('/barangay/:id', function (req, res) {
 
         function (callback) {
             if(!res.locals.user) callback(['api:3x20', 'You are not logged in.']);
-            else if(res.locals.user.UserType.code != 'ADMIN') callback(['api:3x21', 'Unauthorized Access.']);
+            else if(res.locals.user.UserType.code != acctTypes.admin.code) callback(['api:3x21', 'Unauthorized Access.']);
             else callback();
         },
 
@@ -706,8 +705,5 @@ router.delete('/barangay/:id', function (req, res) {
         else res.send({success: true});
     });
 });
-
-
-
 
 module.exports = router;

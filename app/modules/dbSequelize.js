@@ -1,81 +1,87 @@
-var promiseToCallback = require('promise-to-callback');
 var async           =   require('async');
-var sensitive       =   require('../settings/sensitive-settings.json');
+var path            =   require('path');
+var fse             =   require('fs-extra');
+var lodash          =   require('lodash');
 var Sequelize       =   require('sequelize');
+var sensitive       =   require('../settings/sensitive-settings.json');
+var acctTypes       =   require('../variables/accountTypes.json');
+var models          =   {};
 var sequelize = new Sequelize(sensitive.mySQL.database, sensitive.mySQL.username, sensitive.mySQL.password, {
-    host: sensitive.mySQL.host,
-    dialect: 'mysql',
-    logging: false,
-    pool: {
-        max: 30,
-        min: 0,
-        idle: 10000
+    host: sensitive.mySQL.host, dialect: 'mysql', logging: false, pool: {max: 30, min: 0, idle: 10000}
+});
+
+//methods
+async.waterfall([
+    //authenticate
+    function (callback) {
+        sequelize.authenticate()
+            .then(function () {callback();})
+            .catch(callback);
+    },
+    //define models
+    function (callback) {
+        var modelsDirectory = path.join(process.cwd(), '/app/models');
+        fse.readdirSync(modelsDirectory)
+            .filter(function (file) {return (file.indexOf('.') !== 0);})
+            .forEach(function (file) {
+                var model = require(path.join(modelsDirectory, file));
+                models[model.name] = model;
+            });
+        callback();
+    },
+    //sync database
+    function (callback) {
+        sequelize.sync(/*{force: true}*/)
+            .then(function () {callback();})
+            .catch(callback);
+    },
+    //ensure account types
+    function (callback) {
+        var types = [];
+        for(var prop in acctTypes) types.push(lodash.extend(acctTypes[prop], {prop: prop}));
+        async.each(types, function (type, cb) {
+            models.UserType.findById(type.code)
+                .then(function (acctType) {
+                    if(!acctType) {
+                        new models.UserType({
+                            code: acctTypes[type.prop].code,
+                            name: acctTypes[type.prop].name
+                        }).save()
+                            .then(function () {cb();})
+                            .catch(cb);
+                    } else cb();
+                }).catch(cb);
+        }, function (err) {
+            callback(err);
+        });
+    },
+    //ensure admin
+    function (callback) {
+        models.User.findAndCount({where: {type: 'ADMIN'}})
+            .then(function (result) {
+                if(result.count == 0) {
+                    new models.User({
+                        username: 'admin',
+                        password: 'admin',
+                        type: acctTypes.admin.code,
+                        firstname: 'The',
+                        middlename: 'Default',
+                        lastname: 'Administrator'
+                    }).save()
+                        .then(function () {callback();})
+                        .catch(callback);
+                }
+                else callback();
+            })
+            .catch(callback)
     }
+], function (err) {
+    if(err) throw err;
+    else console.log('Database Synchronized.');
 });
 
 module.exports = {
-    sequelize: sequelize,
     Sequelize: Sequelize,
-    initContents: function () {
-        var createUserType = function (code, name) {
-            var UserType = new sequelize.models.UserType();
-            UserType.code = code;
-            UserType.name = name;
-            return UserType.save();
-        };
-        var createDefaultAdminAccount = function () {
-            var User = new sequelize.models.User();
-            User.username = 'admin';
-            User.password = 'admin';
-            User.type = 'ADMIN';
-            User.firstname = 'The';
-            User.middlename = 'Default';
-            User.lastname = 'Administrator';
-            return User.save().catch(function (err) {
-                if(err) throw err;
-            });
-        };
-        var checkUserTypes = function (cb) {
-            sequelize.models.UserType.findAndCount().then(function (result) {
-                var codes = result.rows.map(function (u) {return u.code});
-                async.parallel([
-                    function (callback) {
-                        if(codes.indexOf('ADMIN') < 0)
-                            promiseToCallback(createUserType('ADMIN', 'Administrator'))(callback);
-                        else callback();
-                    },
-                    function (callback) {
-                        if(codes.indexOf('BRGY') < 0)
-                            promiseToCallback(createUserType('BRGY', 'Barangay'))(callback);
-                        else callback();
-                    },
-                    function (callback) {
-                        if(codes.indexOf('CSWD') < 0)
-                            promiseToCallback(createUserType('CSWD', 'City Social Welfare and Development'))(callback);
-                        else callback();
-                    },
-                    function (callback) {
-                        if(codes.indexOf('CDRRMO') < 0)
-                            promiseToCallback(createUserType('CDRRMO', 'City Disaster Risk Reduction Management Office'))(callback);
-                        else callback();
-                    }
-                ], function (err) {
-                    if(err) cb(err);
-                    else cb();
-                });
-            }).catch(function (err) {cb(err);});
-        };
-        var checkAccounts = function () {
-            promiseToCallback(sequelize.models.User.findAndCount({
-                where: {type: 'ADMIN'}
-            }))(function (err, result) {
-                if(err) throw err;
-                else if(result.count <= 0) createDefaultAdminAccount();
-            });
-        };
-        checkUserTypes(function (err) {
-            if(err) throw err;
-            else checkAccounts();
-        });
-    }
+    sequelize: sequelize,
+    models: models
 };

@@ -1,0 +1,6 @@
+{
+  "admin": {"code": "ADMIN", "name": "Administrator"},
+  "brgy": {"code": "BRGY", "name": "Barangay"},
+  "cdrrmo": {"code": "CDRRMO", "name": "City Disaster Risk Reduction Management Office"},
+  "cswd": {"code": "CSWD", "name": "City Social Welfare and Development"}
+}
